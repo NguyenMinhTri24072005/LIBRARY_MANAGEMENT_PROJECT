@@ -51,6 +51,7 @@ LIBRARY_MANAGEMENT_SOURCE
 │   ├── app.js
 │   ├── package-lock.json
 │   ├── package.json
+│   ├── seed.js
 │   ├── server.js
 │   └── setup-admin.js
 ├── combine.js
@@ -595,7 +596,11 @@ const thongKeService = require('../services/thongke.service');
 exports.getStats = async (req, res, next) => {
     try {
         const stats = await thongKeService.getDashboardStats(req.query);
-        return res.status(200).json({ success: true, message: "Lấy thống kê thành công", data: stats });
+        return res.status(200).json({ 
+            success: true, 
+            message: "Lấy thống kê thành công", 
+            data: stats 
+        });
     } catch (error) {
         return next(error);
     }
@@ -603,7 +608,7 @@ exports.getStats = async (req, res, next) => {
 
 exports.exportExcelBooks = async (req, res, next) => {
     try {
-        // Gọi hàm từ service
+        // Gọi hàm xuất Excel từ service, truyền trực tiếp biến res (response) vào
         await thongKeService.exportExcelBooks(res);
     } catch (error) {
         return next(error);
@@ -1544,6 +1549,7 @@ class SachService {
             if (data.soQuyenHienTai < 0) {
                 throw new ApiError(400, 'Số lượng sách cập nhật không hợp lệ (Số quyển hiện tại bị âm)!');
             }
+            data.soQuyenHienTai = newSoQuyenHienTai;
         }
 
         return await Sach.findByIdAndUpdate(id, data, { new: true }).populate('maNXB', 'tenNXB');
@@ -1598,102 +1604,127 @@ module.exports = new SachService();
 FILE: backend\app\services\thongke.service.js
 =======================================================
 
-const { DocGia, Sach, PhieuMuon } = require('../models');
+const { Sach, DocGia, PhieuMuon } = require('../models');
 const ExcelJS = require('exceljs');
-const ApiError = require('../api-error'); // THÊM DÒNG NÀY
 
 class ThongKeService {
-    async getDashboardStats(query) {
-        // ... giữ nguyên logic cũ của bạn ...
+    
+    // 1. HÀM LẤY THỐNG KÊ (Đã đặt khối await vào đúng bên trong hàm async)
+    async getDashboardStats(query = {}) {
         let matchDate = {};
+        
+        // Xử lý lọc theo ngày
         if (query.fromDate && query.toDate) {
             matchDate.createdAt = {
                 $gte: new Date(query.fromDate),
-                $lte: new Date(query.toDate + 'T23:59:59.999Z')
+                $lte: new Date(new Date(query.toDate).setHours(23, 59, 59, 999))
             };
         }
-        
-        const tongDocGia = await DocGia.countDocuments({ trangThai: true });
-        
-        const tongSachResult = await Sach.aggregate([
-            { $match: { trangThai: true } },
-            { $group: { _id: null, total: { $sum: '$soQuyen' } } }
-        ]);
-        const tongSach = tongSachResult.length > 0 ? tongSachResult[0].total : 0;
 
-        const soLuotMuon = await PhieuMuon.countDocuments({ ...matchDate, trangThai: { $ne: 'DA_HUY' } });
-
-        let matchDoanhThu = { daThanhToanPhat: true };
-        if (query.fromDate && query.toDate) {
-            matchDoanhThu.ngayTraThucTe = {
-                $gte: new Date(query.fromDate),
-                $lte: new Date(query.toDate + 'T23:59:59.999Z')
-            };
-        }
-        const doanhThuResult = await PhieuMuon.aggregate([
-            { $match: matchDoanhThu },
-            { $group: { _id: null, total: { $sum: '$tienPhat' } } }
-        ]);
-        const tongDoanhThu = doanhThuResult.length > 0 ? doanhThuResult[0].total : 0;
-
+        // Lấy dữ liệu biểu đồ (Đã bao gồm ép múi giờ Việt Nam)
         const chartData = await PhieuMuon.aggregate([
             { $match: { ...matchDate, trangThai: { $ne: 'DA_HUY' } } },
-            { 
-                $group: { 
-                    _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } }, 
-                    count: { $sum: 1 } 
-                } 
+            {
+                $group: {
+                    _id: {
+                        $dateToString: {
+                            format: "%Y-%m-%d",
+                            date: "$createdAt",
+                            timezone: "Asia/Ho_Chi_Minh" 
+                        }
+                    },
+                    count: { $sum: 1 }
+                }
             },
             { $sort: { _id: 1 } }
         ]);
 
+        // Tính tổng các số liệu
+        const [tongDocGia, tongSach, soLuotMuon, tongDoanhThuData] = await Promise.all([
+            DocGia.countDocuments({ trangThai: true }),
+            Sach.aggregate([{ $group: { _id: null, total: { $sum: "$soQuyen" } } }]),
+            PhieuMuon.countDocuments({ ...matchDate, trangThai: { $ne: 'DA_HUY' } }),
+            PhieuMuon.aggregate([
+                { $match: { ...matchDate, daThanhToanPhat: true } },
+                { $group: { _id: null, total: { $sum: "$tienPhat" } } }
+            ])
+        ]);
+
+        const tongDoanhThu = tongDoanhThuData.length > 0 ? tongDoanhThuData[0].total : 0;
+        const tongSoSach = tongSach.length > 0 ? tongSach[0].total : 0;
+
+        // Lấy Top 5 sách mượn nhiều nhất
         const topSach = await PhieuMuon.aggregate([
             { $match: { ...matchDate, trangThai: { $ne: 'DA_HUY' } } },
-            { $group: { _id: '$maSach', luotMuon: { $sum: 1 } } },
+            { $group: { _id: "$maSach", luotMuon: { $sum: 1 } } },
             { $sort: { luotMuon: -1 } },
             { $limit: 5 },
             { $lookup: { from: 'saches', localField: '_id', foreignField: '_id', as: 'sachInfo' } },
-            { $unwind: '$sachInfo' },
-            { $project: { _id: 1, luotMuon: 1, tenSach: '$sachInfo.tenSach', hinhAnh: '$sachInfo.hinhAnh' } }
+            { $unwind: "$sachInfo" },
+            {
+                $project: {
+                    _id: 1,
+                    tenSach: "$sachInfo.tenSach",
+                    luotMuon: 1
+                }
+            }
         ]);
 
-        return { tongDocGia, tongSach, soLuotMuon, tongDoanhThu, topSach, chartData };
+        return {
+            tongDocGia,
+            tongSach: tongSoSach,
+            soLuotMuon,
+            tongDoanhThu,
+            chartData,
+            topSach
+        };
     }
 
-    // ĐƯA HÀM NÀY VÀO TRONG CLASS
+    // 2. HÀM XUẤT EXCEL
     async exportExcelBooks(res) {
         try {
-            const books = await Sach.find({}).populate('maNXB', 'tenNXB');
+            const books = await Sach.find({}).populate('maNXB', 'tenNXB').lean();
+
             const workbook = new ExcelJS.Workbook();
             const worksheet = workbook.addWorksheet('Danh Sách Sách');
 
+            // Định nghĩa các cột Excel
             worksheet.columns = [
+                { header: 'STT', key: 'stt', width: 5 },
                 { header: 'Tên Sách', key: 'tenSach', width: 40 },
                 { header: 'Tác Giả', key: 'tacGia', width: 25 },
-                { header: 'Năm XB', key: 'namXuatBan', width: 15 },
-                { header: 'Nhà XB', key: 'nxb', width: 25 },
-                { header: 'Tồn Kho', key: 'soQuyenHienTai', width: 15 },
+                { header: 'Nhà Xuất Bản', key: 'nxb', width: 25 },
+                { header: 'Năm Xuất Bản', key: 'namXuatBan', width: 15 },
+                { header: 'Đơn Giá', key: 'donGia', width: 15 },
+                { header: 'Tổng Số Quyển', key: 'soQuyen', width: 15 },
+                { header: 'Còn Lại', key: 'soQuyenHienTai', width: 15 }
             ];
 
-            books.forEach(b => {
+            // Đổ dữ liệu vào các dòng
+            books.forEach((book, index) => {
                 worksheet.addRow({
-                    tenSach: b.tenSach,
-                    tacGia: b.tacGia,
-                    namXuatBan: b.namXuatBan,
-                    nxb: b.maNXB ? b.maNXB.tenNXB : 'N/A',
-                    soQuyenHienTai: b.soQuyenHienTai
+                    stt: index + 1,
+                    tenSach: book.tenSach,
+                    tacGia: book.tacGia,
+                    nxb: book.maNXB ? book.maNXB.tenNXB : 'N/A',
+                    namXuatBan: book.namXuatBan,
+                    donGia: book.donGia,
+                    soQuyen: book.soQuyen,
+                    soQuyenHienTai: book.soQuyenHienTai
                 });
             });
 
-            worksheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
-            worksheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF764BA2' } };
+            // In đậm hàng tiêu đề
+            worksheet.getRow(1).font = { bold: true };
 
+            // Cấu hình header để trả file về cho Frontend
             res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-            res.setHeader('Content-Disposition', 'attachment; filename=BaoCao_Sach.xlsx');
+            res.setHeader('Content-Disposition', 'attachment; filename=Danh_Sach_Sach.xlsx');
 
-            return await workbook.xlsx.write(res);
+            await workbook.xlsx.write(res);
+            res.end();
         } catch (error) {
-            throw new ApiError(500, "Lỗi khi xuất file Excel");
+            throw error;
         }
     }
 }
@@ -4471,6 +4502,171 @@ FILE: backend\package.json
   }
 }
 
+
+=======================================================
+FILE: backend\seed.js
+=======================================================
+
+require('dotenv').config();
+const mongoose = require('mongoose');
+
+// Import các model từ file index.js trong thư mục models của bạn
+const { 
+    CaiDatHeThong, 
+    NhanVien, 
+    NhaXuatBan, 
+    Sach, 
+    DocGia, 
+    PhieuMuon 
+} = require('./app/models');
+
+// Kết nối Database (Lấy URI từ file .env, nếu không có thì dùng mặc định)
+const DB_URI = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/LIBRARY_MANAGEMENT";
+
+const seedData = async () => {
+    try {
+        await mongoose.connect(DB_URI);
+        console.log("🟢 Đã kết nối Database. Bắt đầu dọn dẹp dữ liệu cũ...");
+
+        // 1. Xóa dữ liệu cũ
+        await Promise.all([
+            CaiDatHeThong.deleteMany({}),
+            NhanVien.deleteMany({}),
+            NhaXuatBan.deleteMany({}),
+            Sach.deleteMany({}),
+            DocGia.deleteMany({}),
+            PhieuMuon.deleteMany({})
+        ]);
+        console.log("🧹 Đã xóa sạch dữ liệu cũ.");
+
+        // 2. Tạo Cài đặt hệ thống mặc định
+        await CaiDatHeThong.create({
+            soNgayMuonToiDa: 14,
+            phiPhatTrenNgay: 5000,
+            soSachMuonToiDa: 5
+        });
+
+        // 3. Tạo tài khoản Admin mặc định
+        // Lưu ý: Nếu Model NhanVien của bạn có hook pre('save') để băm mật khẩu, 
+        // thì nhập '123456' nó sẽ tự băm. Nếu không, bạn cần require('bcrypt') và băm tại đây.
+        await NhanVien.create({
+            hoTenNV: "Quản Trị Viên",
+            chucVu: "Admin",
+            diaChi: "Thư viện trung tâm",
+            soDienThoai: "0999999999",
+            password: "admin" // Mật khẩu mặc định là admin
+        });
+
+        // 4. Tạo Nhà Xuất Bản
+        const nxbs = await NhaXuatBan.insertMany([
+            { tenNXB: "NXB Trẻ", diaChi: "161B Lý Chính Thắng, TP.HCM" },
+            { tenNXB: "NXB Kim Đồng", diaChi: "248 Cống Quỳnh, TP.HCM" },
+            { tenNXB: "NXB Giáo Dục", diaChi: "81 Trần Hưng Đạo, Hà Nội" },
+            { tenNXB: "NXB Hội Nhà Văn", diaChi: "65 Nguyễn Du, Hà Nội" },
+            { tenNXB: "NXB Tổng Hợp TP.HCM", diaChi: "62 Nguyễn Thị Minh Khai, TP.HCM" }
+        ]);
+
+        // 5. Tạo Sách
+        const sachData = [
+            { tenSach: "Đắc Nhân Tâm", tacGia: "Dale Carnegie", namXuatBan: 2020, donGia: 85000, soQuyen: 20, soQuyenHienTai: 20 },
+            { tenSach: "Nhà Giả Kim", tacGia: "Paulo Coelho", namXuatBan: 2019, donGia: 79000, soQuyen: 15, soQuyenHienTai: 15 },
+            { tenSach: "Tuổi Trẻ Đáng Giá Bao Nhiêu", tacGia: "Rosie Nguyễn", namXuatBan: 2018, donGia: 80000, soQuyen: 30, soQuyenHienTai: 30 },
+            { tenSach: "Cây Cam Ngọt Của Tôi", tacGia: "José Mauro", namXuatBan: 2021, donGia: 105000, soQuyen: 12, soQuyenHienTai: 12 },
+            { tenSach: "Tôi Thấy Hoa Vàng Trên Cỏ Xanh", tacGia: "Nguyễn Nhật Ánh", namXuatBan: 2015, donGia: 95000, soQuyen: 25, soQuyenHienTai: 25 },
+            { tenSach: "Sapiens: Lược Sử Loài Người", tacGia: "Yuval Noah Harari", namXuatBan: 2017, donGia: 250000, soQuyen: 10, soQuyenHienTai: 10 },
+            { tenSach: "Tâm Lý Học Tội Phạm", tacGia: "Stanton Samenow", namXuatBan: 2022, donGia: 150000, soQuyen: 8, soQuyenHienTai: 8 },
+            { tenSach: "Lập trình Vue.js căn bản", tacGia: "Evan You", namXuatBan: 2023, donGia: 200000, soQuyen: 5, soQuyenHienTai: 5 },
+            { tenSach: "Cấu Trúc Dữ Liệu & Giải Thuật", tacGia: "Nhiều Tác Giả", namXuatBan: 2021, donGia: 120000, soQuyen: 15, soQuyenHienTai: 15 },
+            { tenSach: "Harry Potter và Hòn Đá Phù Thủy", tacGia: "J.K. Rowling", namXuatBan: 2000, donGia: 180000, soQuyen: 10, soQuyenHienTai: 10 }
+        ];
+
+        // Gắn ngẫu nhiên mã NXB cho các sách
+        const sachToInsert = sachData.map(s => ({
+            ...s,
+            maNXB: nxbs[Math.floor(Math.random() * nxbs.length)]._id
+        }));
+        const sachs = await Sach.insertMany(sachToInsert);
+
+        // 6. Tạo Độc Giả
+        const docGiaData = [];
+        for (let i = 1; i <= 10; i++) {
+            docGiaData.push({
+                hoLot: `Nguyễn Văn`,
+                ten: `Khách ${i}`,
+                ngaySinh: new Date(1995 + (i % 10), i % 12, (i * 2) % 28 + 1),
+                phai: i % 2 === 0 ? "Nam" : "Nữ",
+                diaChi: `Quận ${i % 5 + 1}, TP.HCM`,
+                dienThoai: `090900000${i}`,
+                password: "123", // MK mặc định là 123
+                diemUyTin: 100 - (i * 2),
+                trangThai: true
+            });
+        }
+        const docGias = await DocGia.insertMany(docGiaData);
+
+        // 7. Tạo Phiếu Mượn (Giả lập mượn trả)
+        const phieuMuonData = [];
+        const trangThaiList = ["CHO_DUYET", "DANG_MUON", "DA_TRA", "DA_HUY"];
+
+        for (let i = 0; i < 15; i++) {
+            const sachRandom = sachs[Math.floor(Math.random() * sachs.length)];
+            const docGiaRandom = docGias[Math.floor(Math.random() * docGias.length)];
+            const trangThaiRandom = trangThaiList[Math.floor(Math.random() * trangThaiList.length)];
+            
+            // Giả lập ngày mượn từ 1-20 ngày trước
+            const ngayMuon = new Date();
+            ngayMuon.setDate(ngayMuon.getDate() - Math.floor(Math.random() * 20 + 1));
+            
+            const hanTra = new Date(ngayMuon);
+            hanTra.setDate(hanTra.getDate() + 14); // Hạn trả 14 ngày
+
+            let ngayTraThucTe = null;
+            let tienPhat = 0;
+            let daThanhToanPhat = false;
+
+            if (trangThaiRandom === "DA_TRA") {
+                ngayTraThucTe = new Date(ngayMuon);
+                ngayTraThucTe.setDate(ngayTraThucTe.getDate() + Math.floor(Math.random() * 20)); // Có thể trả trước hoặc sau hạn
+                
+                // Nếu trả trễ -> Tính tiền phạt giả lập
+                if (ngayTraThucTe > hanTra) {
+                    const daysLate = Math.ceil((ngayTraThucTe - hanTra) / (1000 * 60 * 60 * 24));
+                    tienPhat = daysLate * 5000;
+                    daThanhToanPhat = Math.random() > 0.5; // Random 50% đã đóng phạt
+                }
+            }
+
+            phieuMuonData.push({
+                maDocGia: docGiaRandom._id,
+                maSach: sachRandom._id,
+                trangThai: trangThaiRandom,
+                hanTra: hanTra,
+                ngayTraThucTe: ngayTraThucTe,
+                tienPhat: tienPhat,
+                daThanhToanPhat: daThanhToanPhat,
+                createdAt: ngayMuon
+            });
+
+            // Nếu đang mượn thì trừ số lượng sách hiện tại (giả lập)
+            if (trangThaiRandom === "DANG_MUON" || trangThaiRandom === "CHO_DUYET") {
+                await Sach.findByIdAndUpdate(sachRandom._id, { $inc: { soQuyenHienTai: -1 } });
+            }
+        }
+        await PhieuMuon.insertMany(phieuMuonData);
+
+        console.log("✅ SEED DỮ LIỆU THÀNH CÔNG!");
+        console.log("-----------------------------------------");
+        console.log("Tài khoản Admin: SĐT: 0999999999 | MK: admin");
+        console.log("Tài khoản Độc giả: SĐT: 0909000001 | MK: 123");
+        console.log("-----------------------------------------");
+        process.exit();
+    } catch (error) {
+        console.error("❌ Lỗi Seed dữ liệu:", error);
+        process.exit(1);
+    }
+};
+
+seedData();
 
 =======================================================
 FILE: backend\server.js
