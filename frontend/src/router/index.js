@@ -35,16 +35,15 @@ const routes = [
                 name: 'BooksCatalog',
                 component: () => import('../views/user/BooksCatalog.vue'), // Trang danh sách sách cũ
             },
-            // Tạm thời trỏ về Home để tránh lỗi
             {
                 path: 'cart',
                 name: 'Cart',
-                component: () => import('../views/user/Home.vue'),
+                component: () => import('../views/user/Cart.vue'), // <--- ĐÃ SỬA
             },
             {
                 path: 'history',
                 name: 'History',
-                component: () => import('../views/user/Home.vue'),
+                component: () => import('../views/user/History.vue'), // <--- ĐÃ SỬA
             }
         ]
     },
