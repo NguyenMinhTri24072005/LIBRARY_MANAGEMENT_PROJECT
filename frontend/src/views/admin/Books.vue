@@ -1,26 +1,33 @@
 <template>
     <div>
-        <!-- Header & Nút thêm -->
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h4 class="fw-bold text-dark mb-0"><i class="bi bi-journal-bookmark-fill text-primary me-2"></i>Quản Lý Sách
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+            <h4 class="fw-bold text-dark mb-0">
+                <i class="bi bi-journal-bookmark-fill text-primary me-2"></i>Quản Lý Kho Sách
             </h4>
-            <button class="btn btn-primary shadow-sm fw-semibold" @click="openModal()">
-                <i class="bi bi-plus-lg me-1"></i> Thêm Sách Mới
-            </button>
-        </div>
-
-        <!-- Thanh tìm kiếm -->
-        <div class="card border-0 shadow-sm rounded-4 mb-4">
-            <div class="card-body p-3">
-                <div class="input-group">
-                    <span class="input-group-text bg-light border-0"><i class="bi bi-search text-muted"></i></span>
-                    <input type="text" class="form-control bg-light border-0" v-model="searchQuery" @input="fetchBooks"
-                        placeholder="Tìm kiếm sách theo tên...">
-                </div>
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-success shadow-sm fw-semibold d-flex align-items-center"
+                    @click="exportExcel" :disabled="isExporting">
+                    <span v-if="isExporting" class="spinner-border spinner-border-sm me-2"></span>
+                    <i v-else class="bi bi-file-earmark-excel-fill me-2"></i> Xuất Excel
+                </button>
+                <button type="button" class="btn btn-primary shadow-sm fw-semibold d-flex align-items-center"
+                    @click="openModal()">
+                    <i class="bi bi-plus-lg me-2"></i> Thêm Sách Mới
+                </button>
             </div>
         </div>
 
-        <!-- Bảng danh sách sách -->
+        <div class="card border-0 shadow-sm rounded-4 mb-4">
+            <div class="card-body p-3">
+                <form @submit.prevent="handleSearch" class="input-group">
+                    <span class="input-group-text bg-light border-0"><i class="bi bi-search text-muted"></i></span>
+                    <input type="text" class="form-control bg-light border-0" v-model="searchQuery"
+                        placeholder="Nhập tên sách hoặc tác giả để tìm kiếm...">
+                    <button type="submit" class="btn btn-primary px-4">Tìm kiếm</button>
+                </form>
+            </div>
+        </div>
+
         <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
@@ -38,10 +45,14 @@
                         <tr v-if="isLoading">
                             <td colspan="6" class="text-center py-5">
                                 <div class="spinner-border text-primary"></div>
+                                <p class="mt-2 text-muted small">Đang nạp dữ liệu...</p>
                             </td>
                         </tr>
                         <tr v-else-if="books.length === 0">
-                            <td colspan="6" class="text-center py-5 text-muted">Không tìm thấy cuốn sách nào.</td>
+                            <td colspan="6" class="text-center py-5 text-muted">
+                                <i class="bi bi-inbox display-4 d-block mb-2"></i>
+                                Không tìm thấy cuốn sách nào khớp với tìm kiếm.
+                            </td>
                         </tr>
                         <tr v-else v-for="book in books" :key="book._id">
                             <td class="ps-4">
@@ -49,26 +60,34 @@
                                     <img :src="getImageUrl(book.hinhAnh)" class="rounded shadow-sm bg-white border"
                                         style="width: 45px; height: 65px; object-fit: cover;" @error="handleImageError">
                                     <div>
-                                        <h6 class="mb-0 fw-bold text-dark">{{ book.tenSach }}</h6>
+                                        <h6 class="mb-0 fw-bold text-dark text-truncate" style="max-width: 200px;">{{
+                                            book.tenSach }}</h6>
                                         <small class="text-muted">Năm: {{ book.namXuatBan || 'N/A' }}</small>
                                     </div>
                                 </div>
                             </td>
                             <td>{{ book.tacGia }}</td>
-                            <td><span class="badge bg-secondary bg-opacity-10 text-secondary">{{ book.maNXB?.tenNXB ||
-                                'Lỗi NXB' }}</span></td>
+                            <td>
+                                <span class="badge bg-secondary bg-opacity-10 text-secondary">
+                                    {{ book.maNXB?.tenNXB || 'N/A' }}
+                                </span>
+                            </td>
                             <td class="fw-semibold text-success">{{ formatCurrency(book.donGia) }}</td>
                             <td class="text-center">
                                 <span class="fw-bold">{{ book.soQuyen }}</span> /
-                                <span
-                                    :class="book.soQuyenHienTai > 0 ? 'text-primary fw-bold' : 'text-danger fw-bold'">{{
-                                        book.soQuyenHienTai }}</span>
+                                <span :class="book.soQuyenHienTai > 0 ? 'text-primary fw-bold' : 'text-danger fw-bold'">
+                                    {{ book.soQuyenHienTai }}
+                                </span>
                             </td>
                             <td class="text-end pe-4">
-                                <button class="btn btn-sm btn-light text-primary me-2" @click="openModal(book)"><i
-                                        class="bi bi-pencil-square"></i></button>
-                                <button class="btn btn-sm btn-light text-danger" @click="deleteBook(book._id)"><i
-                                        class="bi bi-trash3"></i></button>
+                                <button type="button" class="btn btn-sm btn-light text-primary me-2"
+                                    @click="openModal(book)">
+                                    <i class="bi bi-pencil-square"></i>
+                                </button>
+                                <button type="button" class="btn btn-sm btn-light text-danger"
+                                    @click="deleteBook(book._id)">
+                                    <i class="bi bi-trash3"></i>
+                                </button>
                             </td>
                         </tr>
                     </tbody>
@@ -76,7 +95,20 @@
             </div>
         </div>
 
-        <!-- Modal Thêm/Sửa Sách -->
+        <nav v-if="totalPages > 1 && !isLoading" class="mt-4 d-flex justify-content-center">
+            <ul class="pagination shadow-sm">
+                <li class="page-item" :class="{ disabled: currentPage === 1 }">
+                    <button type="button" class="page-link" @click="changePage(currentPage - 1)">Trước</button>
+                </li>
+                <li class="page-item" v-for="page in totalPages" :key="page" :class="{ active: page === currentPage }">
+                    <button type="button" class="page-link" @click="changePage(page)">{{ page }}</button>
+                </li>
+                <li class="page-item" :class="{ disabled: currentPage === totalPages }">
+                    <button type="button" class="page-link" @click="changePage(currentPage + 1)">Sau</button>
+                </li>
+            </ul>
+        </nav>
+
         <div class="modal fade" id="bookModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-lg modal-dialog-centered">
                 <div class="modal-content border-0 rounded-4 shadow">
@@ -86,9 +118,7 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        <form @submit.prevent="saveBook" class="row g-3">
-
-                            <!-- Tên sách & Tác giả -->
+                        <form @submit.prevent="saveBook" id="bookForm" class="row g-3">
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold">Tên sách <span
                                         class="text-danger">*</span></label>
@@ -98,8 +128,6 @@
                                 <label class="form-label fw-semibold">Tác giả <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control bg-light" v-model="formData.tacGia" required>
                             </div>
-
-                            <!-- Nhà XB & Năm XB -->
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold">Nhà Xuất Bản <span
                                         class="text-danger">*</span></label>
@@ -112,10 +140,8 @@
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold">Năm xuất bản</label>
                                 <input type="number" class="form-control bg-light" v-model="formData.namXuatBan"
-                                    min="1000" :max="new Date().getFullYear()">
+                                    min="1000">
                             </div>
-
-                            <!-- Đơn giá & Số lượng -->
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold">Đơn giá (VNĐ) <span
                                         class="text-danger">*</span></label>
@@ -127,32 +153,27 @@
                                         class="text-danger">*</span></label>
                                 <input type="number" class="form-control bg-light" v-model="formData.soQuyen" min="1"
                                     required>
-                                <small v-if="isEditing" class="text-muted">Thay đổi số này sẽ tự động tính lại số sách
-                                    trên kệ.</small>
+                                <small v-if="isEditing" class="text-muted">Hệ thống sẽ tự tính lại số sách sẵn
+                                    có.</small>
                             </div>
-
-                            <!-- Upload Ảnh -->
                             <div class="col-12">
                                 <label class="form-label fw-semibold">Ảnh bìa sách</label>
                                 <input type="file" class="form-control bg-light" accept="image/*"
                                     @change="handleFileUpload">
-
-                                <!-- Preview ảnh -->
                                 <div class="mt-2 d-flex align-items-center gap-3"
                                     v-if="imagePreview || formData.hinhAnh">
-                                    <img :src="imagePreview || getImageUrl(formData.hinhAnh)" class="rounded border"
-                                        style="height: 80px; object-fit: cover;" @error="handleImageError">
-                                    <span class="text-success small"><i class="bi bi-check-circle-fill me-1"></i>Đã chọn
-                                        ảnh</span>
+                                    <img :src="imagePreview || getImageUrl(formData.hinhAnh)"
+                                        class="rounded border shadow-sm"
+                                        style="height: 80px; width: 60px; object-fit: cover;" @error="handleImageError">
+                                    <span class="text-success small"><i class="bi bi-check-circle-fill me-1"></i>Ảnh
+                                        hiện tại</span>
                                 </div>
                             </div>
-
                         </form>
                     </div>
                     <div class="modal-footer border-top-0 pt-0">
                         <button type="button" class="btn btn-light fw-semibold" data-bs-dismiss="modal">Hủy</button>
-                        <button type="button" class="btn btn-primary fw-bold px-4" @click="saveBook"
-                            :disabled="isSaving">
+                        <button type="submit" form="bookForm" class="btn btn-primary fw-bold px-4" :disabled="isSaving">
                             <span v-if="isSaving" class="spinner-border spinner-border-sm me-2"></span>
                             {{ isEditing ? 'Cập Nhật' : 'Thêm Mới' }}
                         </button>
@@ -160,7 +181,6 @@
                 </div>
             </div>
         </div>
-
     </div>
 </template>
 
@@ -175,6 +195,11 @@ const publishers = ref([]);
 const searchQuery = ref('');
 const isLoading = ref(true);
 const isSaving = ref(false);
+const isExporting = ref(false);
+
+// State Phân trang
+const currentPage = ref(1);
+const totalPages = ref(1);
 
 // Modal state
 let modalInstance = null;
@@ -187,40 +212,68 @@ const formData = ref({
     tenSach: '', tacGia: '', maNXB: '', donGia: 0, soQuyen: 1, namXuatBan: new Date().getFullYear(), hinhAnh: ''
 });
 
-// Format tiền
 const formatCurrency = (val) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(val);
 const defaultImage = 'data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2250%22%20height%3D%2270%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20fill%3D%22%23e2e8f0%22%2F%3E%3Ctext%20x%3D%2250%25%22%20y%3D%2250%25%22%20font-family%3D%22sans-serif%22%20font-size%3D%2210%22%20fill%3D%22%2364748b%22%20text-anchor%3D%22middle%22%20dy%3D%22.3em%22%3ENo%20Image%3C%2Ftext%3E%3C%2Fsvg%3E';
 
-// Hàm lấy đường dẫn ảnh an toàn
 const getImageUrl = (path) => {
     if (!path) return defaultImage;
-    // Nếu path đã có http (link ngoài) thì giữ nguyên, ngược lại nối với backend url
     if (path.startsWith('http')) return path;
     return `http://localhost:3000${path}`;
 };
 
-// Hàm xử lý khi ảnh bị lỗi (404)
 const handleImageError = (e) => {
-    e.target.onerror = null; // QUAN TRỌNG: Ngắt sự kiện onError để tránh lặp vô tận
+    e.target.onerror = null;
     e.target.src = defaultImage;
 };
-// Lấy dữ liệu
+
+// Lấy dữ liệu sách (Hỗ trợ phân trang và tìm kiếm)
 const fetchBooks = async () => {
+    isLoading.value = true;
     try {
-        const res = await api.get(`/books?tenSach=${searchQuery.value}`);
-        books.value = res.data;
-    } catch (error) { console.error(error); }
-    finally { isLoading.value = false; }
+        const res = await api.get(`/books`, {
+            params: {
+                page: currentPage.value,
+                limit: 10,
+                search: searchQuery.value
+            }
+        });
+
+        // Xử lý dữ liệu từ cấu hình Backend mới (Phân trang)
+        if (res.data?.data?.books) {
+            books.value = res.data.data.books;
+            totalPages.value = res.data.data.totalPages;
+            currentPage.value = res.data.data.currentPage;
+        } else {
+            // Fallback cho API cũ không phân trang
+            books.value = res.data?.data || res.data;
+            totalPages.value = 1;
+        }
+    } catch (error) {
+        console.error("Lỗi lấy danh sách sách:", error);
+    } finally {
+        isLoading.value = false;
+    }
 };
 
 const fetchPublishers = async () => {
     try {
         const res = await api.get('/publishers');
-        publishers.value = res.data;
+        publishers.value = res.data?.data || res.data;
     } catch (error) { console.error(error); }
 };
 
-// Xử lý Modal
+const handleSearch = () => {
+    currentPage.value = 1;
+    fetchBooks();
+};
+
+const changePage = (page) => {
+    if (page >= 1 && page <= totalPages.value) {
+        currentPage.value = page;
+        fetchBooks();
+    }
+};
+
 const openModal = (book = null) => {
     imageFile.value = null;
     imagePreview.value = null;
@@ -235,7 +288,6 @@ const openModal = (book = null) => {
         formData.value = { tenSach: '', tacGia: '', maNXB: '', donGia: 0, soQuyen: 1, namXuatBan: new Date().getFullYear(), hinhAnh: '' };
     }
 
-    // Tìm phần tử DOM và khởi tạo Modal an toàn
     const modalElement = document.getElementById('bookModal');
     if (!modalInstance && modalElement) {
         modalInstance = new Modal(modalElement);
@@ -249,27 +301,22 @@ const handleFileUpload = (event) => {
     const file = event.target.files[0];
     if (file) {
         imageFile.value = file;
-        imagePreview.value = URL.createObjectURL(file); // Hiển thị tạm
+        imagePreview.value = URL.createObjectURL(file);
     }
 };
 
-// Lưu sách (Có xử lý upload ảnh)
 const saveBook = async () => {
     isSaving.value = true;
     try {
-        // 1. Nếu có file ảnh mới, gọi API Upload trước
         if (imageFile.value) {
             const formDataUpload = new FormData();
             formDataUpload.append('image', imageFile.value);
-
-            // Cấu hình header multipart/form-data riêng cho request này
             const uploadRes = await api.post('/upload', formDataUpload, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
-            formData.value.hinhAnh = uploadRes.data.imageUrl; // Lấy đường dẫn ảnh gán vào form sách
+            formData.value.hinhAnh = uploadRes.data.data.imageUrl; // Sửa trích xuất đúng URL ảnh
         }
 
-        // 2. Gọi API thêm/sửa sách
         if (isEditing.value) {
             await api.put(`/books/${currentId.value}`, formData.value);
             Swal.fire('Thành công', 'Đã cập nhật sách!', 'success');
@@ -278,8 +325,8 @@ const saveBook = async () => {
             Swal.fire('Thành công', 'Đã thêm sách mới!', 'success');
         }
 
-        modalInstance.hide();
-        fetchBooks(); // Tải lại danh sách
+        if (modalInstance) modalInstance.hide();
+        fetchBooks();
     } catch (error) {
         console.error("Lỗi lưu sách:", error);
     } finally {
@@ -287,7 +334,6 @@ const saveBook = async () => {
     }
 };
 
-// Xóa sách (Ẩn)
 const deleteBook = (id) => {
     Swal.fire({
         title: 'Xóa sách này?',
@@ -306,6 +352,32 @@ const deleteBook = (id) => {
             } catch (error) { console.error(error); }
         }
     });
+};
+
+const exportExcel = async () => {
+    // SỬA TẠI ĐÂY: Thêm khối bật/tắt loading
+    isExporting.value = true;
+    try {
+        const response = await api.get('/stats/export/books', {
+            responseType: 'blob'
+        });
+
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', 'BaoCao_Sach.xlsx');
+        document.body.appendChild(link);
+        link.click();
+
+        link.parentNode.removeChild(link);
+        window.URL.revokeObjectURL(url);
+
+    } catch (error) {
+        console.error("Lỗi xuất Excel:", error);
+        Swal.fire('Lỗi', 'Không thể xuất file Excel', 'error');
+    } finally {
+        isExporting.value = false;
+    }
 };
 
 onMounted(() => {
@@ -331,5 +403,25 @@ onMounted(() => {
 .btn-primary:hover {
     background-color: #902be6;
     border-color: #902be6;
+}
+
+.card {
+    border: none;
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(0, 0, 0, 0.02);
+}
+
+.pagination .page-link {
+    color: var(--accent);
+    border: none;
+    margin: 0 2px;
+    border-radius: 8px;
+}
+
+.pagination .page-item.active .page-link {
+    background-color: var(--accent);
+    color: white;
 }
 </style>

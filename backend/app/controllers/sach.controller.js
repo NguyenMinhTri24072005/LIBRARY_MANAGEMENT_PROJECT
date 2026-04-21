@@ -1,4 +1,5 @@
-const sachService = require('../services/sach.service');
+const sachService = require("../services/sach.service"); // Import đối tượng đã khởi tạo
+const ApiError = require("../api-error");
 
 exports.create = async (req, res, next) => {
     try {
@@ -11,19 +12,26 @@ exports.create = async (req, res, next) => {
 
 exports.findAll = async (req, res, next) => {
     try {
-        const documents = await sachService.getAll(req.query);
-        return res.status(200).json({ success: true, message: "Lấy danh sách sách thành công", data: documents });
+        const result = await sachService.findAll(req.query);
+        // Trả về cấu trúc: { success: true, data: { books: [...], totalPages: ... } }
+        return res.json({ 
+            success: true, 
+            data: result 
+        });
     } catch (error) {
-        return next(error);
+        return next(new ApiError(500, "Lỗi khi lấy danh sách sách"));
     }
 };
 
 exports.findOne = async (req, res, next) => {
     try {
-        const document = await sachService.getById(req.params.id);
-        return res.status(200).json({ success: true, message: "Lấy chi tiết sách thành công", data: document });
+        const document = await sachService.findById(req.params.id);
+        if (!document) {
+            return next(new ApiError(404, "Không tìm thấy sách"));
+        }
+        return res.json({ success: true, data: document });
     } catch (error) {
-        return next(error);
+        return next(new ApiError(500, `Lỗi khi lấy sách với id=${req.params.id}`));
     }
 };
 

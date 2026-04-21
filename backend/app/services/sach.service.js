@@ -1,4 +1,4 @@
-const { Sach } = require('../models');
+const { Sach } = require("../models")
 const ApiError = require('../api-error');
 
 class SachService {
@@ -6,25 +6,6 @@ class SachService {
         // Khi mới tạo, số quyển hiện tại (trên kệ) bằng tổng số quyển nhập vào
         data.soQuyenHienTai = data.soQuyen;
         return await Sach.create(data);
-    }
-
-    async getAll(query) {
-        const filter = { trangThai: true }; // Chỉ lấy sách chưa bị ẩn
-        
-        // Tìm kiếm theo tên sách (không phân biệt hoa thường)
-        if (query.tenSach) {
-            filter.tenSach = { $regex: new RegExp(query.tenSach, 'i') };
-        }
-        
-        // Lọc theo NXB
-        if (query.maNXB) {
-            filter.maNXB = query.maNXB;
-        }
-
-        // Dùng populate để lấy chi tiết NXB (chỉ lấy trường tenNXB)
-        return await Sach.find(filter)
-            .populate('maNXB', 'tenNXB')
-            .sort({ createdAt: -1 });
     }
 
     async getById(id) {
@@ -43,7 +24,7 @@ class SachService {
         if (data.soQuyen !== undefined && data.soQuyen !== sachCu.soQuyen) {
             const chenhLech = data.soQuyen - sachCu.soQuyen;
             data.soQuyenHienTai = sachCu.soQuyenHienTai + chenhLech;
-            
+
             if (data.soQuyenHienTai < 0) {
                 throw new ApiError(400, 'Số lượng sách cập nhật không hợp lệ (Số quyển hiện tại bị âm)!');
             }
@@ -59,6 +40,39 @@ class SachService {
             throw new ApiError(404, 'Không tìm thấy sách!');
         }
         return deletedSach;
+    }
+
+    async findAll(query = {}) {
+        const page = parseInt(query.page) || 1;
+        const limit = parseInt(query.limit) || 10;
+        const skip = (page - 1) * limit;
+
+        const filter = { trangThai: true }; // ← Bật lại filter
+
+        if (query.search && query.search.trim() !== "") {
+            filter.$or = [
+                { tenSach: { $regex: query.search, $options: 'i' } },
+                { tacGia: { $regex: query.search, $options: 'i' } }
+            ];
+        }
+        if (query.maNXB && query.maNXB !== "" && query.maNXB !== "undefined") {
+            filter.maNXB = query.maNXB;
+        }
+
+        const [books, total] = await Promise.all([
+            Sach.find(filter) // BỎ chữ "this." đi
+                .populate('maNXB', 'tenNXB')
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(limit)
+                .lean(),
+            Sach.countDocuments(filter) // BỎ chữ "this." đi
+        ]);
+
+        return { books: books || [], totalPages: Math.ceil(total / limit) || 1, currentPage: page, totalItems: total || 0 };
+    }
+    async findById(id) {
+        return await Sach.findById(id).populate('maNXB');
     }
 }
 

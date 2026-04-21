@@ -1,6 +1,5 @@
 <template>
   <div>
-    <!-- Header & Nút thêm -->
     <div class="d-flex justify-content-between align-items-center mb-4">
       <h4 class="fw-bold text-dark mb-0"><i class="bi bi-building text-primary me-2"></i>Nhà Xuất Bản</h4>
       <button class="btn btn-primary shadow-sm fw-semibold" @click="openModal()">
@@ -8,7 +7,6 @@
       </button>
     </div>
 
-    <!-- Thanh tìm kiếm -->
     <div class="card border-0 shadow-sm rounded-4 mb-4">
       <div class="card-body p-3">
         <div class="input-group">
@@ -18,7 +16,6 @@
       </div>
     </div>
 
-    <!-- Bảng danh sách NXB -->
     <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
       <div class="table-responsive">
         <table class="table table-hover align-middle mb-0">
@@ -51,7 +48,6 @@
       </div>
     </div>
 
-    <!-- Modal Thêm/Sửa NXB -->
     <div class="modal fade" id="nxbModal" tabindex="-1" aria-hidden="true">
       <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 rounded-4 shadow">
@@ -103,18 +99,32 @@ const formData = ref({ tenNXB: '', diaChi: '' });
 
 // Lọc NXB theo ô tìm kiếm ở Client-side
 const filteredPublishers = computed(() => {
+    // Thêm lớp bảo vệ: nếu không phải mảng thì trả về mảng rỗng
+    if (!Array.isArray(publishers.value)) return [];
     if (!searchQuery.value) return publishers.value;
+    
     return publishers.value.filter(nxb => 
-        nxb.tenNXB.toLowerCase().includes(searchQuery.value.toLowerCase())
+        nxb.tenNXB && nxb.tenNXB.toLowerCase().includes(searchQuery.value.toLowerCase())
     );
 });
 
 const fetchPublishers = async () => {
+    isLoading.value = true;
     try {
         const res = await api.get('/publishers');
-        publishers.value = res.data;
-    } catch (error) { console.error(error); }
-    finally { isLoading.value = false; }
+        // SỬA LỖI TẠI ĐÂY: Trích xuất đúng mảng từ cấu trúc mới
+        if (res.data && res.data.success) {
+            publishers.value = res.data.data || [];
+        } else {
+            // Fallback nếu API trả về mảng trực tiếp
+            publishers.value = Array.isArray(res.data) ? res.data : [];
+        }
+    } catch (error) { 
+        console.error("Lỗi fetchPublishers:", error);
+        publishers.value = []; // Đảm bảo luôn là mảng khi có lỗi
+    } finally { 
+        isLoading.value = false; 
+    }
 };
 
 const openModal = (nxb = null) => {
@@ -143,7 +153,7 @@ const savePublisher = async () => {
             await api.post('/publishers', formData.value);
             Swal.fire('Thành công', 'Đã thêm Nhà xuất bản mới!', 'success');
         }
-        modalInstance.hide();
+        if (modalInstance) modalInstance.hide();
         fetchPublishers();
     } catch (error) {
         // Lỗi trùng tên đã được Axios Interceptor bắt và hiển thị Swal

@@ -35,7 +35,7 @@
             </tr>
             <tr v-else v-for="reader in filteredReaders" :key="reader._id">
               <td class="ps-4 fw-bold text-dark">{{ reader.hoLot }} {{ reader.ten }}</td>
-              <td>{{ reader.dienThoai }}</td>
+              <td>{{ reader.dienThoai || 'N/A' }}</td>
               <td>{{ reader.phai || 'N/A' }}</td>
               <td class="text-center">
                 <span class="badge rounded-pill" :class="reader.diemUyTin >= 50 ? 'bg-success' : 'bg-danger'">
@@ -132,44 +132,63 @@ let editModalInstance = null;
 
 // Lọc Client-side theo Tên hoặc SĐT
 const filteredReaders = computed(() => {
+    if (!Array.isArray(readers.value)) return [];
     if (!searchQuery.value) return readers.value;
+
     const q = searchQuery.value.toLowerCase();
-    return readers.value.filter(r => 
-        r.dienThoai.includes(q) || 
-        (r.hoLot + ' ' + r.ten).toLowerCase().includes(q)
-    );
+    return readers.value.filter(r => {
+        const phone = r.dienThoai || '';
+        const fullName = (r.hoLot || '') + ' ' + (r.ten || '');
+        return phone.toLowerCase().includes(q) || fullName.toLowerCase().includes(q);
+    });
 });
 
 const fetchReaders = async () => {
+    isLoading.value = true;
     try {
         const res = await api.get('/readers');
-        readers.value = res.data;
-    } catch (error) { console.error(error); }
-    finally { isLoading.value = false; }
+        if (res.data && res.data.success) {
+            readers.value = res.data.data || [];
+        } else {
+            readers.value = Array.isArray(res.data) ? res.data : [];
+        }
+    } catch (error) {
+        console.error("Lỗi fetchReaders:", error);
+        readers.value = [];
+    } finally {
+        isLoading.value = false;
+    }
 };
 
 // Mở Modal Sửa
 const openEditModal = (reader) => {
-    // Copy dữ liệu sang form để không làm thay đổi trực tiếp trên bảng khi chưa bấm Lưu
     editForm.value = { ...reader };
-    
+
     const modalElement = document.getElementById('editReaderModal');
-    if (!editModalInstance && modalElement) {
-        editModalInstance = new Modal(modalElement);
+    if (modalElement) {
+        // SỬA LỖI MODAL: Luôn lấy instance mới nhất từ DOM để tránh bị kẹt
+        editModalInstance = Modal.getInstance(modalElement) || new Modal(modalElement);
+        editModalInstance.show();
     }
-    if (editModalInstance) editModalInstance.show();
 };
 
 // Cập nhật thông tin
 const updateReader = async () => {
     isSaving.value = true;
     try {
-        await api.put(`/readers/${editForm.value._id}`, editForm.value);
+        // SỬA LỖI MONGODB: Loại bỏ _id và các trường hệ thống ra khỏi payload gửi đi
+        const { _id, diemUyTin, trangThai, createdAt, updatedAt, __v, ...updatePayload } = editForm.value;
+
+        await api.put(`/readers/${_id}`, updatePayload);
         Swal.fire('Thành công', 'Đã cập nhật thông tin độc giả!', 'success');
-        editModalInstance.hide();
+        
+        if (editModalInstance) editModalInstance.hide();
         fetchReaders(); // Tải lại bảng
     } catch (error) {
-        Swal.fire('Lỗi', 'Không thể cập nhật thông tin', 'error');
+        console.error("Lỗi cập nhật độc giả:", error);
+        // Hiển thị lỗi chi tiết từ server nếu có
+        const errorMsg = error.response?.data?.message || 'Không thể cập nhật thông tin';
+        Swal.fire('Lỗi', errorMsg, 'error');
     } finally {
         isSaving.value = false;
     }
@@ -213,7 +232,7 @@ const deleteReader = (id) => {
                 await api.delete(`/readers/${id}`);
                 Swal.fire('Đã xóa!', 'Độc giả đã bị xóa khỏi hệ thống.', 'success');
                 fetchReaders();
-            } catch (error) { 
+            } catch (error) {
                 // Lỗi ràng buộc (đang nợ sách/phạt) sẽ do Axios Interceptor hiển thị
             }
         }
@@ -226,8 +245,21 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.text-primary { color: var(--accent) !important; }
-.bg-primary { background-color: var(--accent) !important; }
-.btn-primary { background-color: var(--accent); border-color: var(--accent); }
-.btn-primary:hover { background-color: #902be6; border-color: #902be6; }
+.text-primary {
+    color: var(--accent) !important;
+}
+
+.bg-primary {
+    background-color: var(--accent) !important;
+}
+
+.btn-primary {
+    background-color: var(--accent);
+    border-color: var(--accent);
+}
+
+.btn-primary:hover {
+    background-color: #902be6;
+    border-color: #902be6;
+}
 </style>

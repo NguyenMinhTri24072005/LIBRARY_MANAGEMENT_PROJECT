@@ -65,6 +65,20 @@ class DocGiaService {
         if (!deletedDocGia) throw new ApiError(404, 'Không tìm thấy độc giả!');
         return deletedDocGia;
     }
+
+    async update(id, payload) {
+        try {
+            // Mongoose: Tìm theo ID và cập nhật các trường được gửi lên
+            const result = await DocGia.findByIdAndUpdate(
+                id,
+                { $set: payload },
+                { new: true } // Trả về dữ liệu mới sau khi đã cập nhật
+            );
+            return result;
+        } catch (error) {
+            throw error;
+        }
+    }
 }
 
 module.exports = new DocGiaService();

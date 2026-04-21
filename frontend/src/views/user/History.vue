@@ -15,25 +15,29 @@
               <th scope="col">Hạn trả</th>
               <th scope="col" class="text-center">Trạng thái</th>
               <th scope="col" class="text-end pe-4">Tiền phạt</th>
+              <th scope="col" class="text-end pe-4">Thao tác</th>
             </tr>
           </thead>
           <tbody>
             <tr v-if="isLoading">
-              <td colspan="6" class="text-center py-5">
+              <td colspan="7" class="text-center py-5">
                 <div class="spinner-border text-primary"></div>
+                <p class="mt-2 text-muted small">Đang tải lịch sử...</p>
               </td>
             </tr>
-            <tr v-else-if="history.length === 0">
-              <td colspan="6" class="text-center py-5 text-muted">
+
+            <tr v-else-if="!history || history.length === 0">
+              <td colspan="7" class="text-center py-5 text-muted">
                 <i class="bi bi-journal-x display-4 d-block mb-3"></i>
                 Bạn chưa có lịch sử mượn sách nào.
               </td>
             </tr>
-            <tr v-else v-for="phieu in history" :key="phieu._id">
-              <!-- Mã phiếu -->
-              <td class="ps-4 text-muted fw-semibold small">#{{ phieu._id.slice(-6).toUpperCase() }}</td>
 
-              <!-- Sách -->
+            <tr v-else v-for="phieu in history" :key="phieu._id">
+              <td class="ps-4 text-muted fw-semibold small">
+                #{{ phieu._id ? phieu._id.slice(-6).toUpperCase() : 'N/A' }}
+              </td>
+
               <td>
                 <div class="d-flex align-items-center gap-3">
                   <img :src="getImageUrl(phieu.maSach?.hinhAnh)" class="rounded border shadow-sm"
@@ -41,17 +45,15 @@
                   <div>
                     <div class="fw-bold text-dark text-truncate" style="max-width: 250px;"
                       :title="phieu.maSach?.tenSach">{{ phieu.maSach?.tenSach || 'Sách đã bị xóa' }}</div>
-                    <div class="small text-muted"><i class="bi bi-pen me-1"></i>{{ phieu.maSach?.tacGia }}</div>
+                    <div class="small text-muted"><i class="bi bi-pen me-1"></i>{{ phieu.maSach?.tacGia || 'N/A' }}</div>
                   </div>
                 </div>
               </td>
 
-              <!-- Ngày tạo (Ngày gửi yêu cầu) -->
               <td class="text-muted">{{ formatDate(phieu.createdAt) }}</td>
 
-              <!-- Hạn trả -->
               <td>
-                <div v-if="phieu.trangThai === 'CHO_DUYET'" class="text-muted fst-italic small">Chưa duyệt</div>
+                <div v-if="phieu.trangThai === 'CHO_DUYET'" class="text-muted fst-italic small">Chờ thủ thư duyệt</div>
                 <div v-else-if="phieu.trangThai === 'DA_HUY'" class="text-muted fst-italic small">-</div>
                 <div v-else>
                   <div class="fw-semibold"
@@ -64,27 +66,27 @@
                 </div>
               </td>
 
-              <!-- Trạng thái -->
               <td class="text-center">
                 <span class="badge" :class="getStatusBadge(phieu)">
                   {{ getStatusText(phieu) }}
                 </span>
               </td>
 
-              <!-- Tiền phạt -->
               <td class="text-end pe-4">
                 <div v-if="phieu.tienPhat > 0">
                   <span class="fw-bold text-danger">{{ formatCurrency(phieu.tienPhat) }}</span>
                   <div class="small mt-1">
-                    <span v-if="phieu.daThanhToanPhat" class="badge bg-success bg-opacity-10 text-success"><i
-                        class="bi bi-check-circle-fill me-1"></i>Đã đóng</span>
-                    <span v-else class="badge bg-danger bg-opacity-10 text-danger"><i
-                        class="bi bi-exclamation-circle-fill me-1"></i>Chưa đóng</span>
+                    <span v-if="phieu.daThanhToanPhat" class="badge bg-success bg-opacity-10 text-success">
+                      <i class="bi bi-check-circle-fill me-1"></i>Đã đóng
+                    </span>
+                    <span v-else class="badge bg-danger bg-opacity-10 text-danger">
+                      <i class="bi bi-exclamation-circle-fill me-1"></i>Chưa đóng
+                    </span>
                   </div>
                 </div>
                 <span v-else class="text-muted fst-italic small">-</span>
               </td>
-              <!-- Thao tác / Gia hạn -->
+
               <td class="text-end pe-4">
                 <template v-if="phieu.trangThai === 'DANG_MUON' && !isOverdue(phieu.hanTra)">
                   <button v-if="phieu.trangThaiGiaHan === 'KHONG'"
@@ -115,24 +117,36 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import api from '../../services/api';
-import Swal from 'sweetalert2'
+import Swal from 'sweetalert2';
+import { useAuthStore } from '../../store/auth.store';
 
 const history = ref([]);
 const isLoading = ref(true);
+const authStore = useAuthStore();
 
 const fetchHistory = async () => {
+  isLoading.value = true;
   try {
     const res = await api.get('/borrows');
-    history.value = res.data;
+    // SỬA LỖI TẠI ĐÂY: Trích xuất mảng từ res.data.data
+    if (res.data && res.data.success) {
+      history.value = res.data.data || [];
+    } else {
+      history.value = Array.isArray(res.data) ? res.data : [];
+    }
   } catch (error) {
-    console.error(error);
+    console.error("Lỗi fetchHistory:", error);
+    history.value = [];
   } finally {
     isLoading.value = false;
   }
 };
 
 // ---- TIỆN ÍCH HIỂN THỊ ----
-const formatCurrency = (val) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(val);
+const formatCurrency = (val) => {
+    if(!val) return '0 ₫';
+    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(val);
+};
 
 const formatDate = (dateString) => {
   if (!dateString) return '';
@@ -177,29 +191,12 @@ const getImageUrl = (path) => {
   if (path.startsWith('http') || path.startsWith('data:')) return path;
   return `http://localhost:3000${path}`;
 };
+
 const handleImageError = (e) => {
   e.target.src = defaultImage;
   e.target.onerror = null;
 };
-const extendBorrow = (id) => {
-  Swal.fire({
-    title: 'Xin gia hạn sách?',
-    text: "Bạn sẽ được cộng thêm số ngày mượn. Mỗi sách chỉ được gia hạn 1 lần.",
-    icon: 'question',
-    showCancelButton: true,
-    confirmButtonColor: '#764ba2',
-    cancelButtonText: 'Hủy',
-    confirmButtonText: 'Gia hạn'
-  }).then(async (result) => {
-    if (result.isConfirmed) {
-      try {
-        await api.put(`/borrows/${id}/extend`);
-        Swal.fire('Thành công', 'Đã gia hạn sách thành công!', 'success');
-        fetchHistory(); // Load lại lịch sử
-      } catch (error) { }
-    }
-  });
-};
+
 const requestExtension = (id) => {
   Swal.fire({
     title: 'Xin gia hạn sách?',
@@ -226,13 +223,8 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.text-primary {
-  color: var(--accent) !important;
-}
-
-.bg-primary {
-  background-color: var(--accent) !important;
-}
+.text-primary { color: var(--accent) !important; }
+.bg-primary { background-color: var(--accent) !important; }
 .animation-blink { animation: blinker 1s linear infinite; }
 @keyframes blinker { 50% { opacity: 0.5; } }
 </style>

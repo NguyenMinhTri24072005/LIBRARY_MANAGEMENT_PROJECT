@@ -48,7 +48,6 @@
             </div>
           </form>
 
-          <!-- Loading State -->
           <div v-else class="text-center py-5">
             <div class="spinner-border text-primary" role="status"></div>
           </div>
@@ -73,9 +72,17 @@ const isLoading = ref(true);
 const isSaving = ref(false);
 
 const fetchSettings = async () => {
+    isLoading.value = true;
     try {
         const response = await api.get('/settings');
-        if (response.data) {
+        // SỬA LỖI TẠI ĐÂY: Trích xuất đúng object cài đặt từ cấu trúc mới
+        if (response.data && response.data.success) {
+            // Lấy data bên trong, nếu không có thì giữ nguyên giá trị mặc định ban đầu
+            if (response.data.data) {
+                settings.value = response.data.data;
+            }
+        } else if (response.data) {
+            // Fallback cho API cũ
             settings.value = response.data;
         }
     } catch (error) {
@@ -98,6 +105,7 @@ const saveSettings = async () => {
         });
     } catch (error) {
         console.error("Lỗi lưu cài đặt:", error);
+        // Lỗi sẽ do Axios Interceptor hiển thị nếu cấu hình sai
     } finally {
         isSaving.value = false;
     }

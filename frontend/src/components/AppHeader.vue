@@ -11,12 +11,7 @@
             </button>
 
             <div class="collapse navbar-collapse" :class="{ 'show': isMobileMenuOpen }" id="navbarUser">
-                <form class="d-flex mx-lg-auto my-3 my-lg-0 w-100" style="max-width: 500px;">
-                    <div class="input-group">
-                        <input type="text" class="form-control border-primary bg-light" placeholder="Tìm kiếm sách, tác giả...">
-                        <button class="btn btn-primary px-4" type="button"><i class="bi bi-search"></i></button>
-                    </div>
-                </form>
+                
 
                 <ul class="navbar-nav align-items-lg-center gap-2">
                     <li class="nav-item me-lg-2" @click="isMobileMenuOpen = false">

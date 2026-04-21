@@ -1,11 +1,9 @@
 <template>
   <div>
-    <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
       <h4 class="fw-bold text-dark mb-0"><i class="bi bi-card-checklist text-primary me-2"></i>Quản Lý Mượn Trả</h4>
     </div>
 
-    <!-- Thanh Tabs Trạng Thái -->
     <ul class="nav nav-pills mb-4 gap-2">
       <li class="nav-item">
         <button class="nav-link fw-semibold rounded-pill px-4" :class="{ active: currentTab === '' }"
@@ -43,7 +41,6 @@
       </li>
     </ul>
 
-    <!-- Bảng danh sách Phiếu mượn -->
     <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
       <div class="table-responsive">
         <table class="table table-hover align-middle mb-0">
@@ -67,17 +64,16 @@
               <td colspan="6" class="text-center py-5 text-muted">Không có phiếu mượn nào trong mục này.</td>
             </tr>
             <tr v-else v-for="phieu in filteredBorrows" :key="phieu._id">
-              <!-- Mã phiếu -->
-              <td class="ps-4 text-muted fw-semibold small">#{{ phieu._id.slice(-6).toUpperCase() }}</td>
+              <td class="ps-4 text-muted fw-semibold small">
+                #{{ phieu._id ? phieu._id.slice(-6).toUpperCase() : 'N/A' }}
+              </td>
 
-              <!-- Độc giả -->
               <td>
                 <div class="fw-bold text-dark">{{ phieu.maDocGia?.hoLot }} {{ phieu.maDocGia?.ten }}</div>
                 <div class="small text-muted"><i class="bi bi-telephone-fill me-1"></i>{{ phieu.maDocGia?.dienThoai }}
                 </div>
               </td>
 
-              <!-- Sách -->
               <td>
                 <div class="d-flex align-items-center gap-2">
                   <img :src="getImageUrl(phieu.maSach?.hinhAnh)" class="rounded border"
@@ -87,7 +83,6 @@
                 </div>
               </td>
 
-              <!-- Thời gian -->
               <td>
                 <div v-if="phieu.trangThai === 'CHO_DUYET'" class="text-muted fst-italic small">Chưa duyệt</div>
                 <div v-else-if="phieu.trangThai === 'DA_HUY'" class="text-muted fst-italic small">-</div>
@@ -102,13 +97,11 @@
                 </div>
               </td>
 
-              <!-- Trạng thái & Phạt -->
               <td class="text-center">
                 <span class="badge" :class="getStatusBadge(phieu)">
                   {{ getStatusText(phieu) }}
                 </span>
 
-                <!-- Hiển thị tiền phạt nếu có -->
                 <div v-if="phieu.tienPhat > 0" class="mt-1">
                   <span class="badge"
                     :class="phieu.daThanhToanPhat ? 'bg-success bg-opacity-10 text-success' : 'bg-danger bg-opacity-10 text-danger'">
@@ -124,10 +117,8 @@
                 </div>
               </td>
 
-              <!-- Thao tác -->
               <td class="text-end pe-4">
 
-                <!-- Nút cho trạng thái CHỜ DUYỆT -->
                 <template v-if="phieu.trangThai === 'CHO_DUYET'">
                   <button class="btn btn-sm btn-success me-2 fw-semibold shadow-sm"
                     @click="handleAction(phieu._id, 'approve', 'Duyệt mượn sách này?')">
@@ -139,10 +130,8 @@
                   </button>
                 </template>
 
-                <!-- Nút cho trạng thái ĐANG MƯỢN -->
                 <template v-if="phieu.trangThai === 'DANG_MUON'">
 
-                  <!-- Xử lý Gia hạn (Nếu có yêu cầu) -->
                   <div v-if="phieu.trangThaiGiaHan === 'CHO_DUYET_GIA_HAN'" class="mb-2">
                     <button class="btn btn-sm btn-success me-1 fw-semibold"
                       @click="handleAction(phieu._id, 'extend-approve', 'Duyệt cho phép gia hạn sách này?')">
@@ -154,14 +143,12 @@
                     </button>
                   </div>
 
-                  <!-- Nút Trả sách mặc định -->
                   <button class="btn btn-sm btn-primary fw-semibold shadow-sm w-100"
                     @click="handleAction(phieu._id, 'return', 'Xác nhận độc giả đã trả sách?')">
                     <i class="bi bi-box-arrow-in-down"></i> Nhận Trả Sách
                   </button>
                 </template>
 
-                <!-- Nút cho trạng thái ĐÃ TRẢ nhưng CHƯA ĐÓNG PHẠT -->
                 <template v-if="phieu.trangThai === 'DA_TRA' && phieu.tienPhat > 0 && !phieu.daThanhToanPhat">
                   <button class="btn btn-sm btn-danger fw-semibold shadow-sm"
                     @click="handleAction(phieu._id, 'pay-fine', `Xác nhận thu ${formatCurrency(phieu.tienPhat)} tiền phạt?`)">
@@ -193,9 +180,15 @@ const fetchBorrows = async () => {
   isLoading.value = true;
   try {
     const res = await api.get('/borrows');
-    borrows.value = res.data;
+    // SỬA LỖI TẠI ĐÂY: Trích xuất đúng mảng dữ liệu
+    if (res.data && res.data.success) {
+      borrows.value = res.data.data || [];
+    } else {
+      borrows.value = Array.isArray(res.data) ? res.data : [];
+    }
   } catch (error) {
     console.error(error);
+    borrows.value = []; // Đảm bảo luôn là mảng khi có lỗi
   } finally {
     isLoading.value = false;
   }
@@ -203,11 +196,13 @@ const fetchBorrows = async () => {
 
 // Đếm số lượng phiếu đang chờ duyệt để hiện badge đỏ
 const countPending = computed(() => {
+  if (!Array.isArray(borrows.value)) return 0; // SỬA LỖI TẠI ĐÂY: Lớp bảo vệ chống crash
   return borrows.value.filter(p => p.trangThai === 'CHO_DUYET').length;
 });
 
 // Lọc danh sách theo Tab
 const filteredBorrows = computed(() => {
+  if (!Array.isArray(borrows.value)) return []; // SỬA LỖI TẠI ĐÂY: Lớp bảo vệ chống crash
   if (currentTab.value === '') return borrows.value;
   return borrows.value.filter(p => p.trangThai === currentTab.value);
 });
@@ -287,13 +282,15 @@ const handleAction = (id, action, confirmMessage) => {
         // action có thể là: 'approve', 'reject', 'return', 'pay-fine'
         const response = await api.put(`/borrows/${id}/${action}`);
 
-        // Hiển thị thông báo thành công (Có thể kèm số tiền phạt do Backend trả về)
-        Swal.fire('Thành công!', response.message, 'success');
+        // SỬA LỖI TẠI ĐÂY: Trích xuất thông báo đúng cấu trúc mới của axios
+        const successMessage = response.data?.message || 'Thao tác thành công';
+        Swal.fire('Thành công!', successMessage, 'success');
 
         // Tải lại danh sách
         fetchBorrows();
       } catch (error) {
         // Lỗi (ví dụ: Hết sách trong kho) đã được Axios Interceptor bắt và hiển thị Swal
+        console.error("Lỗi khi thao tác:", error);
       }
     }
   });

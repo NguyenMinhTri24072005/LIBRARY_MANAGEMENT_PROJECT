@@ -19,11 +19,14 @@ router.put('/profile', docGiaController.updateProfile);
 
 
 // --- Tuyến đường cho Admin ---
+// Mọi route nằm dưới dòng này đều tự động yêu cầu quyền Admin
 router.use(authMiddleware.isAdmin);
 
+// SỬA LỖI TẠI ĐÂY: Dùng đúng tên biến docGiaController (chữ G viết hoa)
+router.put('/:id', docGiaController.update); 
 router.get('/', docGiaController.findAll);
 router.get('/:id', docGiaController.findOne);
-router.patch('/:id/status', docGiaController.updateStatus); // Dùng PATCH vì chỉ cập nhật 1 trường trangThai
+router.patch('/:id/status', docGiaController.updateStatus); 
 router.delete('/:id', docGiaController.delete);
 
 module.exports = router;

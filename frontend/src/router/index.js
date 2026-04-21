@@ -17,12 +17,6 @@ const routes = [
     },
     {
         path: '/',
-        name: 'Home',
-        component: () => import('../views/user/BooksCatalog.vue'),
-        meta: { requiresAuth: true, role: 'user' }
-    },
-    {
-        path: '/',
         component: () => import('../components/UserLayout.vue'), // <--- DÙNG LAYOUT MỚI
         meta: { requiresAuth: true, role: 'user' },
         children: [
