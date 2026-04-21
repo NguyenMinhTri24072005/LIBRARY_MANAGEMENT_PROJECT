@@ -113,7 +113,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '../store/auth.store';
 import { useCartStore } from '../store/cart.store';
@@ -122,6 +122,12 @@ import Swal from 'sweetalert2';
 const router = useRouter();
 const authStore = useAuthStore();
 const cartStore = useCartStore();
+
+onMounted(() => {
+    if (authStore.isUser) {
+        authStore.fetchCurrentUser();
+    }
+});
 
 const userInitials = computed(() => {
     const ten = authStore.user?.ten || 'U';
@@ -139,6 +145,7 @@ const handleLogout = () => {
     }).then((result) => {
         if (result.isConfirmed) {
             authStore.logout();
+            cartStore.clearCart(); 
             router.push('/login');
         }
     });

@@ -41,8 +41,15 @@
                   <span class="badge bg-light text-dark border"><i class="bi bi-building me-1"></i>{{ book.maNXB?.tenNXB || 'N/A' }}</span>
                 </div>
 
-                <!-- Nút xóa -->
-                <button class="btn btn-light text-danger rounded-circle p-2" @click="removeItem(book._id)" title="Xóa khỏi giỏ">
+                <!-- Nút Tăng/Giảm số lượng -->
+                <div class="d-flex align-items-center bg-light border rounded-pill px-2 py-1">
+                  <button class="btn btn-sm btn-light rounded-circle text-primary fw-bold" @click="cartStore.decreaseQuantity(book._id)" style="width: 30px; height: 30px; padding: 0;">-</button>
+                  <span class="fw-bold px-3">{{ book.soLuongMuon }}</span>
+                  <button class="btn btn-sm btn-light rounded-circle text-primary fw-bold" @click="cartStore.addToCart(book)" style="width: 30px; height: 30px; padding: 0;">+</button>
+                </div>
+
+                <!-- Nút xóa hẳn khỏi giỏ -->
+                <button class="btn btn-light text-danger rounded-circle p-2 ms-2" @click="cartStore.removeFromCart(book._id)" title="Xóa khỏi giỏ">
                   <i class="bi bi-x-lg fs-5"></i>
                 </button>
               </div>
@@ -136,8 +143,13 @@ const submitBorrowRequest = async () => {
     
     isSubmitting.value = true;
     try {
-        // Lấy mảng ID sách từ giỏ hàng
-        const dsMaSach = cartStore.items.map(book => book._id);
+        // Tạo mảng ID sách: Nếu soLuongMuon = 2, push ID đó 2 lần vào mảng
+        const dsMaSach = [];
+        cartStore.items.forEach(book => {
+            for (let i = 0; i < book.soLuongMuon; i++) {
+                dsMaSach.push(book._id);
+            }
+        });
         
         // Gửi API
         await api.post('/borrows', { dsMaSach });
@@ -154,7 +166,6 @@ const submitBorrowRequest = async () => {
         });
 
     } catch (error) {
-        // Lỗi (như nợ phạt, khóa thẻ, mượn quá số lượng) đã được Axios Interceptor bắt
         console.error("Lỗi gửi yêu cầu mượn:", error);
     } finally {
         isSubmitting.value = false;

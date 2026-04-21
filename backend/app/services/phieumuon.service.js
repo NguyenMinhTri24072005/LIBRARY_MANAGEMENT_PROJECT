@@ -97,25 +97,32 @@ class PhieuMuonService {
             throw new ApiError(400, 'Phiếu mượn không hợp lệ hoặc sách đã được trả!');
         }
 
-        let config = await CaiDatHeThong.findOne();
-        if (!config) config = await CaiDatHeThong.create({});
+        let config = await CaiDatHeThong.findOne() || await CaiDatHeThong.create({});
 
         phieu.ngayTraThucTe = new Date();
         phieu.trangThai = 'DA_TRA';
 
+        // Tính ngày trễ
         const soNgayTre = calculateDaysDifference(phieu.ngayTraThucTe, phieu.hanTra);
         const docGia = await DocGia.findById(phieu.maDocGia);
+        
+        let diemMoi = docGia.diemUyTin;
 
         if (soNgayTre > 0) {
-            // Trễ hạn: Tính tiền phạt và trừ uy tín (Trừ 5 điểm/lần)
+            // Trễ hạn: Tính tiền phạt và trừ 5 uy tín
             phieu.tienPhat = soNgayTre * config.phiPhatTrenNgay;
-            docGia.diemUyTin = Math.max(0, docGia.diemUyTin - 5); // Không để âm
+            diemMoi -= 5;
         } else {
-            // Đúng hạn: Cộng uy tín (Tối đa 100 điểm)
-            docGia.diemUyTin = Math.min(100, docGia.diemUyTin + 2);
+            // Đúng hạn: Cộng 2 uy tín
+            diemMoi += 2;
         }
 
-        await docGia.save();
+        // Đảm bảo điểm nằm trong khoảng 0 -> 100
+        if (diemMoi < 0) diemMoi = 0;
+        if (diemMoi > 100) diemMoi = 100;
+
+        // ÉP BUỘC LƯU VÀO DATABASE BẰNG findByIdAndUpdate
+        await DocGia.findByIdAndUpdate(docGia._id, { diemUyTin: diemMoi });
 
         // Hoàn lại sách vào kho
         const sach = await Sach.findById(phieu.maSach);

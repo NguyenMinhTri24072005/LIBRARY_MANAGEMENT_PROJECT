@@ -64,14 +64,18 @@
 
                     <!-- Nút Thêm vào giỏ -->
                     <div class="card-footer bg-white border-0 p-3 pt-0">
-                        <button v-if="!authStore.isAdmin" class="btn w-100 fw-bold rounded-3 shadow-sm"
-                            :class="cartStore.isInCart(book._id) ? 'btn-success' : 'btn-primary'"
-                            :disabled="book.soQuyenHienTai <= 0 || cartStore.isInCart(book._id)"
+                        <button v-if="!authStore.isAdmin" class="btn w-100 fw-bold rounded-3 shadow-sm btn-primary"
+                            :disabled="book.soQuyenHienTai <= 0 || cartStore.totalItems >= maxBorrowBooks"
                             @click.stop="handleAddToCart(book)">
-                            <span v-if="cartStore.isInCart(book._id)"><i class="bi bi-check-lg me-1"></i> Đã chọn</span>
-                            <span v-else-if="book.soQuyenHienTai <= 0"><i class="bi bi-x-circle me-1"></i> Hết
-                                sách</span>
-                            <span v-else><i class="bi bi-cart-plus me-1"></i> Mượn sách</span>
+
+                            <span v-if="book.soQuyenHienTai <= 0"><i class="bi bi-x-circle me-1"></i> Hết sách</span>
+                            <span v-else>
+                                <i class="bi bi-cart-plus me-1"></i>
+                                Mượn sách <span
+                                    v-if="cartStore.getQuantityInCart && cartStore.getQuantityInCart(book._id) > 0"
+                                    class="badge bg-white text-primary ms-1">{{ cartStore.getQuantityInCart(book._id)
+                                    }}</span>
+                            </span>
                         </button>
                         <button v-else class="btn w-100 fw-bold rounded-3 btn-secondary" disabled>
                             <i class="bi bi-shield-lock me-1"></i> Dành cho Độc giả

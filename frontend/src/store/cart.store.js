@@ -6,17 +6,20 @@ export const useCartStore = defineStore('cart', {
         items: [], // Mảng chứa các sách được chọn
     }),
     getters: {
-        totalItems: (state) => state.items.length,
-        // Kiểm tra xem một cuốn sách đã có trong giỏ chưa
-        isInCart: (state) => (bookId) => {
-            return state.items.some(item => item._id === bookId);
+        // Tổng số sách (tính cả số lượng mượn của từng cuốn)
+        totalItems: (state) => state.items.reduce((total, item) => total + item.soLuongMuon, 0),
+        
+        // Lấy số lượng đã mượn của 1 cuốn sách cụ thể
+        getQuantityInCart: (state) => (bookId) => {
+            const item = state.items.find(i => i._id === bookId);
+            return item ? item.soLuongMuon : 0;
         }
     },
     actions: {
-        // Thêm sách vào giỏ
+        // Thêm sách vào giỏ (Cho phép thêm nhiều cuốn giống nhau)
         addToCart(book, maxBooksAllowed = 5) {
-            // 1. Kiểm tra giới hạn giỏ hàng
-            if (this.items.length >= maxBooksAllowed) {
+            // 1. Kiểm tra giới hạn TỔNG SỐ SÁCH trong giỏ
+            if (this.totalItems >= maxBooksAllowed) {
                 Swal.fire({
                     icon: 'warning',
                     title: 'Giỏ sách đã đầy!',
@@ -26,41 +29,48 @@ export const useCartStore = defineStore('cart', {
                 return false;
             }
 
-            // 2. Kiểm tra sách đã có trong giỏ chưa
-            if (this.isInCart(book._id)) {
-                Swal.fire({
-                    icon: 'info',
-                    title: 'Đã có trong giỏ!',
-                    text: 'Cuốn sách này đã nằm trong giỏ mượn của bạn.',
-                    toast: true, position: 'top-end', showConfirmButton: false, timer: 2000
-                });
-                return false;
-            }
-
-            // 3. Kiểm tra số lượng tồn kho (Đã check ở UI nhưng check lại cho chắc)
-            if (book.soQuyenHienTai <= 0) {
+            // 2. Kiểm tra số lượng tồn kho
+            const currentQtyInCart = this.getQuantityInCart(book._id);
+            if (currentQtyInCart >= book.soQuyenHienTai) {
                 Swal.fire({
                     icon: 'error',
                     title: 'Hết sách!',
-                    text: 'Cuốn sách này hiện không còn sẵn trong kho.',
+                    text: `Thư viện chỉ còn ${book.soQuyenHienTai} cuốn sách này.`,
                     confirmButtonColor: '#d33'
                 });
                 return false;
             }
 
-            // 4. Thêm vào giỏ
-            this.items.push(book);
+            // 3. Thêm vào giỏ hoặc tăng số lượng
+            const existingItem = this.items.find(item => item._id === book._id);
+            if (existingItem) {
+                existingItem.soLuongMuon += 1;
+            } else {
+                // Tạo bản sao của book và thêm trường soLuongMuon
+                this.items.push({ ...book, soLuongMuon: 1 });
+            }
             
             Swal.fire({
                 icon: 'success',
                 title: 'Đã thêm!',
                 text: `Đã thêm "${book.tenSach}" vào giỏ sách.`,
-                toast: true, position: 'top-end', showConfirmButton: false, timer: 2000
+                toast: true, position: 'top-end', showConfirmButton: false, timer: 1500
             });
             return true;
         },
 
-        // Xóa sách khỏi giỏ
+        // Xóa 1 cuốn khỏi giỏ (Giảm số lượng, nếu = 0 thì xóa hẳn)
+        decreaseQuantity(bookId) {
+            const existingItem = this.items.find(item => item._id === bookId);
+            if (existingItem) {
+                existingItem.soLuongMuon -= 1;
+                if (existingItem.soLuongMuon <= 0) {
+                    this.removeFromCart(bookId);
+                }
+            }
+        },
+
+        // Xóa hẳn 1 tựa sách khỏi giỏ (Bất kể số lượng)
         removeFromCart(bookId) {
             this.items = this.items.filter(item => item._id !== bookId);
         },
@@ -70,5 +80,5 @@ export const useCartStore = defineStore('cart', {
             this.items = [];
         }
     },
-    persist: true // Tự động lưu giỏ hàng vào localStorage để không bị mất khi F5
+    persist: true 
 });
