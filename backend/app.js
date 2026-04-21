@@ -8,9 +8,14 @@ const app = express();
 app.use(cors()); // Cho phép Frontend gọi API (Cross-Origin Resource Sharing)
 app.use(express.json()); // Phân tích các request có body định dạng JSON
 app.use(express.urlencoded({ extended: true })); // Phân tích form data
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // --- 2. ĐỊNH NGHĨA ROUTES CHÍNH (Sẽ import sau) ---
 const authRoutes = require('./app/routes/auth.route');
+const nxbRoutes = require('./routes/nhaxuatban.route'); 
+const sachRoutes = require('./routes/sach.route'); 
+const uploadRoutes = require('./app/routes/upload.route'); 
+const docGiaRoutes = require('./app/routes/docgia.route'); 
 
 app.get('/', (req, res) => {
     res.status(200).json({
@@ -22,8 +27,10 @@ app.get('/', (req, res) => {
 });
 
 app.use('/api/auth', authRoutes);
-// app.use('/api/books', bookRoutes);
-// ...
+app.use('/api/publishers', nxbRoutes);  //(Route cho NXB)
+app.use('/api/books', sachRoutes);  //(Route cho Sách)
+app.use('/api/upload', uploadRoutes); 
+app.use('/api/readers', docGiaRoutes); 
 
 // --- 3. XỬ LÝ LỖI (ERROR HANDLING) ---
 
