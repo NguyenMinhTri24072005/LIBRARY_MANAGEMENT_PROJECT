@@ -6,13 +6,47 @@ const routes = [
         path: '/login',
         name: 'Login',
         component: () => import('../views/user/Login.vue'),
-        meta: { requiresGuest: true } 
+        meta: { requiresGuest: true }
+    },
+    {
+        path: '/register', // <--- THÊM ROUTE NÀY
+        name: 'Register',
+        component: () => import('../views/user/Register.vue'),
+        meta: { requiresGuest: true }
     },
     {
         path: '/',
         name: 'Home',
-        component: () => import('../views/user/Home.vue'),
+        component: () => import('../views/user/BooksCatalog.vue'),
         meta: { requiresAuth: true, role: 'user' }
+    },
+    {
+        path: '/',
+        component: () => import('../components/UserLayout.vue'), // <--- DÙNG LAYOUT MỚI
+        meta: { requiresAuth: true, role: 'user' },
+        children: [
+            {
+                path: '',
+                name: 'Home',
+                component: () => import('../views/user/Home.vue'), // Landing Page mới
+            },
+            {
+                path: 'books', // <--- THÊM ROUTE NÀY
+                name: 'BooksCatalog',
+                component: () => import('../views/user/BooksCatalog.vue'), // Trang danh sách sách cũ
+            },
+            // Tạm thời trỏ về Home để tránh lỗi
+            {
+                path: 'cart',
+                name: 'Cart',
+                component: () => import('../views/user/Home.vue'),
+            },
+            {
+                path: 'history',
+                name: 'History',
+                component: () => import('../views/user/Home.vue'),
+            }
+        ]
     },
     // --- KHU VỰC ADMIN ---
     {
@@ -21,7 +55,7 @@ const routes = [
         meta: { requiresAuth: true, role: 'admin' },
         children: [
             {
-                path: '', 
+                path: '',
                 name: 'AdminDashboard',
                 component: () => import('../views/admin/Dashboard.vue'),
             },
@@ -35,16 +69,20 @@ const routes = [
                 name: 'AdminBooks',
                 component: () => import('../views/admin/Books.vue'),
             },
-            // Tạm thời trỏ về một view trống hoặc Dashboard để không bị lỗi "No match found"
+            {
+                path: 'publishers',
+                name: 'AdminPublishers',
+                component: () => import('../views/admin/Publishers.vue'),
+            },
             {
                 path: 'readers',
                 name: 'AdminReaders',
-                component: () => import('../views/admin/Dashboard.vue'),
+                component: () => import('../views/admin/Readers.vue'),
             },
             {
                 path: 'borrows',
                 name: 'AdminBorrows',
-                component: () => import('../views/admin/Dashboard.vue'),
+                component: () => import('../views/admin/Borrows.vue'),
             }
         ]
     }
@@ -79,7 +117,7 @@ router.beforeEach((to, from) => {
     }
 
     // Nếu hợp lệ, tự động cho qua (không cần return)
-    return true; 
+    return true;
 });
 
 export default router;

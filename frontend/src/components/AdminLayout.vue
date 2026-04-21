@@ -28,6 +28,12 @@
             </router-link>
           </li>
           <li class="nav-item">
+            <router-link to="/admin/publishers" class="nav-link rounded-3 text-secondary d-flex align-items-center" active-class="active bg-primary text-white shadow-sm">
+              <i class="bi bi-building me-3 fs-5"></i>
+              <span v-if="isSidebarOpen">Nhà Xuất Bản</span>
+            </router-link>
+          </li>
+          <li class="nav-item">
             <router-link to="/admin/readers" class="nav-link rounded-3 text-secondary d-flex align-items-center" active-class="active bg-primary text-white shadow-sm">
               <i class="bi bi-people-fill me-3 fs-5"></i>
               <span v-if="isSidebarOpen">Độc giả</span>
@@ -134,6 +140,7 @@ const currentRouteName = computed(() => {
     switch (route.name) {
         case 'AdminDashboard': return 'Tổng quan hệ thống';
         case 'AdminBooks': return 'Quản lý Sách';
+        case 'AdminPublishers': return 'Nhà Xuất Bản';
         case 'AdminReaders': return 'Quản lý Độc giả';
         case 'AdminBorrows': return 'Quản lý Mượn Trả';
         case 'AdminSettings': return 'Cài đặt hệ thống';
