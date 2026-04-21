@@ -8,11 +8,21 @@ LIBRARY_MANAGEMENT_SOURCE
 │   ├── app
 │   │   ├── api-error.js
 │   │   ├── config
+│   │   │   └── db.js
 │   │   ├── controllers
 │   │   ├── middleware
+│   │   │   └── upload.middleware.js
 │   │   ├── models
+│   │   │   ├── caidathethong.model.js
+│   │   │   ├── docgia.model.js
+│   │   │   ├── index.js
+│   │   │   ├── nhanvien.model.js
+│   │   │   ├── nhaxuatban.model.js
+│   │   │   ├── phieumuon.model.js
+│   │   │   └── sach.model.js
 │   │   ├── routes
-│   │   └── services
+│   │   ├── services
+│   │   └── utils
 │   ├── app.js
 │   ├── package-lock.json
 │   ├── package.json
@@ -27,16 +37,21 @@ LIBRARY_MANAGEMENT_SOURCE
 │   ├── README.md
 │   ├── src
 │   │   ├── components
+│   │   ├── composables
+│   │   ├── constants
 │   │   ├── main.js
 │   │   ├── router
 │   │   ├── services
+│   │   │   └── api.js
 │   │   ├── store
 │   │   ├── style.css
+│   │   ├── utils
 │   │   └── views
 │   │       ├── admin
 │   │       └── user
 │   └── vite.config.js
-└── README.md
+├── README.md
+└── TODO.md
 
 
 =======================================================
@@ -48,19 +63,239 @@ NỘI DUNG CHI TIẾT CÁC FILE
 FILE: backend\.env
 =======================================================
 
+# Cấu hình Server
+PORT=3000
 
+# Cấu hình Cơ sở dữ liệu
+MONGO_URI=mongodb://localhost:27017/LIBRARY_MANAGEMENT
+
+# Cấu hình Bảo mật (Token)
+JWT_SECRET=super_secret_library_key_2024
+JWT_EXPIRES_IN=7d
+
+# Cấu hình Nghiệp vụ Thư viện (Hằng số hệ thống)
+MAX_BORROW_DAYS=14
+FINE_PER_DAY=5000
+MAX_BORROW_BOOKS=5
 
 =======================================================
 FILE: backend\app\api-error.js
 =======================================================
 
+class ApiError extends Error {
+    constructor(statusCode, message) {
+        super();
+        this.statusCode = statusCode;
+        this.message = message;
+    }
+}
 
+module.exports = ApiError;
+
+=======================================================
+FILE: backend\app\config\db.js
+=======================================================
+
+const mongoose = require('mongoose');
+
+const connectDB = async () => {
+    try {
+        // Thực hiện kết nối với MongoDB thông qua biến môi trường
+        const conn = await mongoose.connect(process.env.MONGO_URI);
+        console.log(`✅ MongoDB Connected thành công: ${conn.connection.host}`);
+    } catch (error) {
+        console.error(`❌ Lỗi kết nối MongoDB: ${error.message}`);
+        // Dừng tiến trình (Server) nếu không thể kết nối tới DB
+        process.exit(1);
+    }
+};
+
+module.exports = connectDB;
+
+=======================================================
+FILE: backend\app\middleware\upload.middleware.js
+=======================================================
+
+
+
+=======================================================
+FILE: backend\app\models\caidathethong.model.js
+=======================================================
+
+const mongoose = require('mongoose');
+
+const caiDatHeThongSchema = new mongoose.Schema({
+    soNgayMuonToiDa: { type: Number, default: 14 }, // Hạn mượn mặc định (ngày)
+    phiPhatTrenNgay: { type: Number, default: 5000 }, // Tiền phạt mỗi ngày trễ (VNĐ)
+    soSachMuonToiDa: { type: Number, default: 5 } // Số sách tối đa 1 độc giả được mượn cùng lúc
+}, { timestamps: true });
+
+module.exports = mongoose.model('CaiDatHeThong', caiDatHeThongSchema);
+
+=======================================================
+FILE: backend\app\models\docgia.model.js
+=======================================================
+
+const mongoose = require('mongoose');
+
+const docGiaSchema = new mongoose.Schema({
+    hoLot: { type: String, required: true },
+    ten: { type: String, required: true },
+    ngaySinh: { type: Date },
+    phai: { type: String, enum: ['Nam', 'Nữ', 'Khác'] },
+    diaChi: { type: String },
+    dienThoai: { type: String, required: true, unique: true }, // Dùng SĐT làm tài khoản đăng nhập
+    password: { type: String, required: true },
+    diemUyTin: { type: Number, default: 100 }, // Điểm uy tín, trừ khi trả trễ, cộng khi trả đúng hạn
+    trangThai: { type: Boolean, default: true } // true = Hoạt động, false = Bị khóa (không cho mượn)
+}, { timestamps: true });
+
+module.exports = mongoose.model('DocGia', docGiaSchema);
+
+=======================================================
+FILE: backend\app\models\index.js
+=======================================================
+
+const CaiDatHeThong = require('./caidathethong.model');
+const NhanVien = require('./nhanvien.model');
+const DocGia = require('./docgia.model');
+const NhaXuatBan = require('./nhaxuatban.model');
+const Sach = require('./sach.model');
+const PhieuMuon = require('./phieumuon.model');
+
+module.exports = {
+    CaiDatHeThong,
+    NhanVien,
+    DocGia,
+    NhaXuatBan,
+    Sach,
+    PhieuMuon
+};
+
+=======================================================
+FILE: backend\app\models\nhanvien.model.js
+=======================================================
+
+const mongoose = require('mongoose');
+
+const nhanVienSchema = new mongoose.Schema({
+    hoTenNV: { type: String, required: true },
+    password: { type: String, required: true },
+    chucVu: { type: String, default: 'Thủ thư' },
+    diaChi: { type: String },
+    soDienThoai: { type: String, required: true, unique: true } // Dùng SĐT làm tài khoản đăng nhập
+}, { timestamps: true });
+
+module.exports = mongoose.model('NhanVien', nhanVienSchema);
+
+=======================================================
+FILE: backend\app\models\nhaxuatban.model.js
+=======================================================
+
+const mongoose = require('mongoose');
+
+const nhaXuatBanSchema = new mongoose.Schema({
+    tenNXB: { type: String, required: true, unique: true },
+    diaChi: { type: String }
+}, { timestamps: true });
+
+module.exports = mongoose.model('NhaXuatBan', nhaXuatBanSchema);
+
+=======================================================
+FILE: backend\app\models\phieumuon.model.js
+=======================================================
+
+const mongoose = require('mongoose');
+
+const phieuMuonSchema = new mongoose.Schema({
+    maDocGia: { type: mongoose.Schema.Types.ObjectId, ref: 'DocGia', required: true },
+    maSach: { type: mongoose.Schema.Types.ObjectId, ref: 'Sach', required: true },
+    ngayMuon: { type: Date }, // Admin cập nhật khi duyệt đơn
+    hanTra: { type: Date }, // Tính toán dựa trên Cài đặt hệ thống
+    ngayTraThucTe: { type: Date }, // Cập nhật khi độc giả đem sách tới trả
+    trangThai: { 
+        type: String, 
+        enum: ['CHO_DUYET', 'DANG_MUON', 'DA_TRA', 'DA_HUY'], 
+        default: 'CHO_DUYET' 
+    },
+    tienPhat: { type: Number, default: 0 }, // Tiền phạt tính khi trả trễ
+    daThanhToanPhat: { type: Boolean, default: false } // Đánh dấu đã đóng phạt hay chưa
+}, { timestamps: true });
+
+module.exports = mongoose.model('PhieuMuon', phieuMuonSchema);
+
+=======================================================
+FILE: backend\app\models\sach.model.js
+=======================================================
+
+const mongoose = require('mongoose');
+
+const sachSchema = new mongoose.Schema({
+    tenSach: { type: String, required: true },
+    donGia: { type: Number, required: true },
+    soQuyen: { type: Number, required: true }, // Tổng số lượng nhập kho
+    soQuyenHienTai: { type: Number, required: true }, // Số lượng đang sẵn có trên kệ (Sẽ trừ khi có người mượn)
+    namXuatBan: { type: Number },
+    maNXB: { type: mongoose.Schema.Types.ObjectId, ref: 'NhaXuatBan', required: true }, // Khóa ngoại
+    tacGia: { type: String, required: true },
+    hinhAnh: { type: String, default: '' }, // Đường dẫn ảnh bìa sách
+    trangThai: { type: Boolean, default: true } // true = Đang hiển thị, false = Bị ẩn
+}, { timestamps: true });
+
+module.exports = mongoose.model('Sach', sachSchema);
 
 =======================================================
 FILE: backend\app.js
 =======================================================
 
+const express = require('express');
+const cors = require('cors');
+const ApiError = require('./app/api-error');
 
+const app = express();
+
+// --- 1. MIDDLEWARE TOÀN CỤC ---
+app.use(cors()); // Cho phép Frontend gọi API (Cross-Origin Resource Sharing)
+app.use(express.json()); // Phân tích các request có body định dạng JSON
+app.use(express.urlencoded({ extended: true })); // Phân tích form data
+
+// --- 2. ĐỊNH NGHĨA ROUTES CHÍNH (Sẽ import sau) ---
+app.get('/', (req, res) => {
+    res.status(200).json({
+        success: true,
+        message: "Chào mừng đến với API Quản lý Thư viện!",
+        data: null,
+        error: null
+    });
+});
+// app.use('/api/auth', authRoutes);
+// app.use('/api/books', bookRoutes);
+// ...
+
+// --- 3. XỬ LÝ LỖI (ERROR HANDLING) ---
+
+// Bắt lỗi 404: Khi người dùng truy cập một route không tồn tại
+app.use((req, res, next) => {
+    return next(new ApiError(404, "Không tìm thấy tài nguyên (Route không tồn tại)"));
+});
+
+// Middleware xử lý lỗi tổng (Global Error Handler)
+// Mọi lỗi từ try/catch được next(error) sẽ chạy vào đây
+app.use((error, req, res, next) => {
+    // Trạng thái mặc định là 500 (Internal Server Error) nếu không được chỉ định
+    const statusCode = error.statusCode || 500;
+    const message = error.message || "Lỗi máy chủ nội bộ";
+
+    // Trả về JSON chuẩn hóa theo yêu cầu
+    return res.status(statusCode).json({
+        success: false,
+        message: message,
+        data: null,
+        error: process.env.NODE_ENV === 'development' ? error.stack : error // Ẩn stack trace nếu là production
+    });
+});
+
+module.exports = app;
 
 =======================================================
 FILE: backend\package-lock.json
@@ -1669,7 +1904,8 @@ FILE: backend\package.json
   "type": "commonjs",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon server.js"
   },
   "dependencies": {
     "cors": "^2.8.6",
@@ -1688,7 +1924,30 @@ FILE: backend\package.json
 FILE: backend\server.js
 =======================================================
 
+require('dotenv').config(); // Load biến môi trường từ file .env
+const app = require('./app');
+const connectDB = require('./app/config/db');
 
+const PORT = process.env.PORT || 3000;
+
+// Hàm khởi động server
+const startServer = async () => {
+    try {
+        // 1. Kết nối với Cơ sở dữ liệu trước
+        await connectDB();
+
+        // 2. Nếu DB kết nối thành công, tiến hành bật server lắng nghe
+        app.listen(PORT, () => {
+            console.log(`🚀 Server đang chạy tại địa chỉ: http://localhost:${PORT}`);
+        });
+    } catch (error) {
+        console.error("❌ Không thể khởi động server!", error);
+        process.exit(1);
+    }
+};
+
+// Thực thi hàm
+startServer();
 
 =======================================================
 FILE: frontend\.vscode\extensions.json
@@ -3757,6 +4016,12 @@ createApp(App).mount('#app')
 
 
 =======================================================
+FILE: frontend\src\services\api.js
+=======================================================
+
+
+
+=======================================================
 FILE: frontend\src\style.css
 =======================================================
 
@@ -4076,3 +4341,52 @@ FILE: README.md
 =======================================================
 
 CT449 LIBRARY_MANAGEMENT_PROJECT by NGUYEN MINH TRI 
+
+
+=======================================================
+FILE: TODO.md
+=======================================================
+
+# 📚 DỰ ÁN QUẢN LÝ THƯ VIỆN (MEVN STACK) - BẢNG TIẾN ĐỘ
+
+## 🟢 GIAI ĐOẠN 1: KHỞI TẠO DỰ ÁN (HOÀN THÀNH)
+- [x] Khởi tạo cây thư mục chuẩn cho `backend` và `frontend`.
+- [x] Khởi tạo `package.json` và cài đặt các thư viện cần thiết (Express, Mongoose, Vue 3, Vite...).
+- [x] Thiết lập script `combine.js` để xuất toàn bộ mã nguồn ra file `project_combined.txt`.
+- [x] Xây dựng và tối ưu hóa System Instruction cho AI.
+
+## 🟡 GIAI ĐOẠN 2: CẤU HÌNH SERVER & DATABASE (ĐANG THỰC HIỆN)
+- [ ] Cấu hình biến môi trường (`backend/.env`).
+- [ ] Thiết lập `backend/app/api-error.js` (Custom Error Handler).
+- [ ] Thiết lập `backend/app.js` (Cấu hình Express, CORS, Middleware).
+- [ ] Thiết lập `backend/server.js` (Kết nối Mongoose và khởi động Server).
+
+## ⚪ GIAI ĐOẠN 3: XÂY DỰNG DATABASE SCHEMA (MODELS)
+- [ ] Model `CaiDatHeThong` (Cấu hình phí phạt, thời gian mượn).
+- [ ] Model `NhanVien` (Admin / Thủ thư).
+- [ ] Model `DocGia` (Độc giả - Tích hợp điểm uy tín).
+- [ ] Model `NhaXuatBan` & `Sach`.
+- [ ] Model `PhieuMuon` (Quản lý mượn/trả/phạt).
+- [ ] Model `GiaoDich` (Doanh thu).
+- [ ] Model `ThongBao` (Hệ thống thông báo).
+
+## ⚪ GIAI ĐOẠN 4: XÂY DỰNG API (BACKEND)
+- [ ] Logic Xác thực (Auth): Đăng ký, Đăng nhập, tạo JWT Token.
+- [ ] Middleware kiểm tra quyền (Verify Token, Check Admin).
+- [ ] API Quản lý Sách & NXB (CRUD).
+- [ ] API Quản lý Độc giả (Khóa/Mở tài khoản).
+- [ ] API Xử lý Nghiệp vụ Mượn/Trả (Tạo phiếu, duyệt đơn, trả sách, tính phạt).
+
+## ⚪ GIAI ĐOẠN 5: XÂY DỰNG GIAO DIỆN (FRONTEND)
+- [ ] Thiết lập `main.js`, `style.css` và CSS Variables.
+- [ ] Cấu hình `vue-router` và Navigation Guards (Bảo vệ route Admin).
+- [ ] Thiết lập Pinia Store (`auth.store.js`, `cart.store.js`).
+- [ ] **Giao diện Admin**:
+  - [ ] Layout & Sidebar.
+  - [ ] Dashboard (Thống kê doanh thu, sách mượn).
+  - [ ] Quản lý Sách / Độc giả / Phiếu mượn.
+- [ ] **Giao diện Độc giả**:
+  - [ ] Layout & Header.
+  - [ ] Đăng nhập / Đăng ký.
+  - [ ] Danh sách sách & Tìm kiếm.
+  - [ ] Giỏ sách & Lịch sử mượn trả.
