@@ -102,6 +102,12 @@
                     Phạt: {{ formatCurrency(phieu.tienPhat) }}
                     <i v-if="phieu.daThanhToanPhat" class="bi bi-check-circle-fill ms-1"></i>
                   </span>
+
+                  <div v-if="phieu.trangThaiGiaHan === 'CHO_DUYET_GIA_HAN'" class="mt-2">
+                  <span class="badge bg-warning text-dark border border-warning shadow-sm animation-blink">
+                    <i class="bi bi-bell-fill me-1"></i>Xin gia hạn!
+                  </span>
+                </div>
                 </div>
               </td>
 
@@ -120,7 +126,19 @@
 
                 <!-- Nút cho trạng thái ĐANG MƯỢN -->
                 <template v-if="phieu.trangThai === 'DANG_MUON'">
-                  <button class="btn btn-sm btn-primary fw-semibold shadow-sm" @click="handleAction(phieu._id, 'return', 'Xác nhận độc giả đã trả sách?')">
+                  
+                  <!-- Xử lý Gia hạn (Nếu có yêu cầu) -->
+                  <div v-if="phieu.trangThaiGiaHan === 'CHO_DUYET_GIA_HAN'" class="mb-2">
+                    <button class="btn btn-sm btn-success me-1 fw-semibold" @click="handleAction(phieu._id, 'extend-approve', 'Duyệt cho phép gia hạn sách này?')">
+                      <i class="bi bi-check-lg"></i> Duyệt GH
+                    </button>
+                    <button class="btn btn-sm btn-danger fw-semibold" @click="handleAction(phieu._id, 'extend-reject', 'Từ chối gia hạn sách này?')">
+                      <i class="bi bi-x-lg"></i> Từ chối
+                    </button>
+                  </div>
+
+                  <!-- Nút Trả sách mặc định -->
+                  <button class="btn btn-sm btn-primary fw-semibold shadow-sm w-100" @click="handleAction(phieu._id, 'return', 'Xác nhận độc giả đã trả sách?')">
                     <i class="bi bi-box-arrow-in-down"></i> Nhận Trả Sách
                   </button>
                 </template>
@@ -283,4 +301,5 @@ onMounted(() => {
 .bg-primary { background-color: var(--accent) !important; }
 .btn-primary { background-color: var(--accent); border-color: var(--accent); }
 .btn-primary:hover { background-color: #902be6; border-color: #902be6; }
+.animation-blink { animation: blinker 1.5s linear infinite; } @keyframes blinker { 50% { opacity: 0.5; } }
 </style>

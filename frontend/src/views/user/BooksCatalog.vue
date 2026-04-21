@@ -32,7 +32,7 @@
                 <div class="card h-100 border-0 shadow-sm rounded-4 book-card overflow-hidden">
 
                     <!-- Ảnh bìa sách -->
-                    <div class="position-relative bg-light text-center p-3" style="height: 250px;">
+                    <div class="position-relative bg-light text-center p-3" style="height: 250px; cursor: pointer;" @click="$router.push(`/books/${book._id}`)">
                         <img :src="getImageUrl(book.hinhAnh)"
                             class="img-fluid h-100 object-fit-contain shadow-sm rounded" :alt="book.tenSach"
                             @error="handleImageError">

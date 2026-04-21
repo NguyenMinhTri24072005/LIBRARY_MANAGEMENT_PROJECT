@@ -49,7 +49,7 @@ exports.returnBook = async (req, res, next) => {
         const document = await phieuMuonService.returnBook(req.params.id);
         let msg = "Trả sách thành công.";
         if (document.tienPhat > 0) msg += ` Độc giả bị phạt ${document.tienPhat} VNĐ do trả trễ.`;
-        
+
         return res.status(200).json({ success: true, message: msg, data: document });
     } catch (error) {
         return next(error);
@@ -63,4 +63,25 @@ exports.payFine = async (req, res, next) => {
     } catch (error) {
         return next(error);
     }
+};
+
+exports.requestExtension = async (req, res, next) => {
+    try {
+        const document = await phieuMuonService.requestExtension(req.params.id, req.user.id);
+        return res.status(200).json({ success: true, message: "Đã gửi yêu cầu gia hạn đến Thủ thư!", data: document });
+    } catch (error) { return next(error); }
+};
+
+exports.approveExtension = async (req, res, next) => {
+    try {
+        const document = await phieuMuonService.approveExtension(req.params.id);
+        return res.status(200).json({ success: true, message: "Đã duyệt gia hạn sách!", data: document });
+    } catch (error) { return next(error); }
+};
+
+exports.rejectExtension = async (req, res, next) => {
+    try {
+        const document = await phieuMuonService.rejectExtension(req.params.id);
+        return res.status(200).json({ success: true, message: "Đã từ chối gia hạn sách!", data: document });
+    } catch (error) { return next(error); }
 };

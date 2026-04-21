@@ -12,7 +12,13 @@ const phieuMuonSchema = new mongoose.Schema({
         default: 'CHO_DUYET' 
     },
     tienPhat: { type: Number, default: 0 }, // Tiền phạt tính khi trả trễ
-    daThanhToanPhat: { type: Boolean, default: false } // Đánh dấu đã đóng phạt hay chưa
+    daThanhToanPhat: { type: Boolean, default: false }, // Đánh dấu đã đóng phạt hay chưa
+    soLanGiaHan: { type: Number, default: 0 },
+    trangThaiGiaHan: { 
+        type: String, 
+        enum: ['KHONG', 'CHO_DUYET_GIA_HAN', 'DA_GIA_HAN', 'TU_CHOI_GIA_HAN'], 
+        default: 'KHONG' 
+    }
 }, { timestamps: true });
 
 module.exports = mongoose.model('PhieuMuon', phieuMuonSchema);

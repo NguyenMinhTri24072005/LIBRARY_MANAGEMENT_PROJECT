@@ -14,6 +14,15 @@ router.get('/', phieuMuonController.findAll);
 // Độc giả tạo yêu cầu mượn sách
 router.post('/', phieuMuonController.create);
 
+// ... (Các route cũ giữ nguyên)
+
+// Độc giả xin gia hạn sách
+router.put('/:id/extend-request', phieuMuonController.requestExtension);
+
+// Admin xử lý gia hạn
+router.put('/:id/extend-approve', authMiddleware.isAdmin, phieuMuonController.approveExtension);
+router.put('/:id/extend-reject', authMiddleware.isAdmin, phieuMuonController.rejectExtension);
+
 // --- Chỉ Admin mới được can thiệp duyệt/trả/phạt ---
 router.put('/:id/approve', authMiddleware.isAdmin, phieuMuonController.approve);
 router.put('/:id/reject', authMiddleware.isAdmin, phieuMuonController.reject);

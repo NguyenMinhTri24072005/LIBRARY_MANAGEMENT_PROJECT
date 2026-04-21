@@ -5,23 +5,33 @@ const { calculateDaysDifference, addDays } = require('../utils/date.util');
 class PhieuMuonService {
     // 1. Độc giả gửi yêu cầu mượn sách
     async createRequest(maDocGia, dsMaSach) {
-        // Kiểm tra độc giả
         const docGia = await DocGia.findById(maDocGia);
         if (!docGia || !docGia.trangThai) {
             throw new ApiError(403, 'Tài khoản của bạn đã bị khóa hoặc không tồn tại!');
         }
 
-        // Kiểm tra nợ phạt
-        const noPhat = await PhieuMuon.findOne({ maDocGia, tienPhat: { $gt: 0 }, daThanhToanPhat: false });
-        if (noPhat) {
-            throw new ApiError(403, 'Bạn đang có khoản phạt chưa thanh toán. Không thể mượn thêm sách!');
+        // --- GIẢI QUYẾT VẤN ĐỀ 2: ĐIỂM UY TÍN ---
+        if (docGia.diemUyTin < 50) {
+            throw new ApiError(403, `Điểm uy tín của bạn quá thấp (${docGia.diemUyTin}/100). Tài khoản bị tạm khóa quyền mượn!`);
         }
 
-        // Lấy cấu hình hệ thống
-        let config = await CaiDatHeThong.findOne();
-        if (!config) config = await CaiDatHeThong.create({}); // Tạo mặc định nếu chưa có
+        const noPhat = await PhieuMuon.findOne({ maDocGia, tienPhat: { $gt: 0 }, daThanhToanPhat: false });
+        if (noPhat) {
+            throw new ApiError(403, 'Bạn đang có khoản phạt chưa thanh toán. Không thể mượn thêm!');
+        }
 
-        // Đếm số sách ĐANG MƯỢN và CHỜ DUYỆT
+        // --- GIẢI QUYẾT VẤN ĐỀ 3: CHẶN MƯỢN KHI ĐANG CÓ SÁCH TRỄ HẠN ---
+        const sachTreHan = await PhieuMuon.findOne({
+            maDocGia,
+            trangThai: 'DANG_MUON',
+            hanTra: { $lt: new Date() } // Hạn trả nhỏ hơn thời gian hiện tại
+        });
+        if (sachTreHan) {
+            throw new ApiError(403, 'TÀI KHOẢN BỊ KHÓA: Bạn đang có sách mượn quá hạn chưa trả. Vui lòng trả sách trước!');
+        }
+
+        let config = await CaiDatHeThong.findOne() || await CaiDatHeThong.create({});
+
         const dangMuon = await PhieuMuon.countDocuments({
             maDocGia,
             trangThai: { $in: ['CHO_DUYET', 'DANG_MUON'] }
@@ -32,20 +42,14 @@ class PhieuMuonService {
         }
 
         const phieuMuons = [];
-        // Tạo từng phiếu mượn cho mỗi cuốn sách
         for (const maSach of dsMaSach) {
             const sach = await Sach.findById(maSach);
             if (!sach || !sach.trangThai) throw new ApiError(404, `Sách không tồn tại hoặc đã bị ẩn!`);
             if (sach.soQuyenHienTai <= 0) throw new ApiError(400, `Sách '${sach.tenSach}' đã hết trong kho!`);
 
-            const phieu = await PhieuMuon.create({
-                maDocGia,
-                maSach,
-                trangThai: 'CHO_DUYET'
-            });
+            const phieu = await PhieuMuon.create({ maDocGia, maSach, trangThai: 'CHO_DUYET' });
             phieuMuons.push(phieu);
         }
-
         return phieuMuons;
     }
 
@@ -72,7 +76,7 @@ class PhieuMuonService {
         phieu.trangThai = 'DANG_MUON';
         phieu.ngayMuon = new Date();
         phieu.hanTra = addDays(phieu.ngayMuon, config.soNgayMuonToiDa);
-        
+
         return await phieu.save();
     }
 
@@ -135,7 +139,7 @@ class PhieuMuonService {
     // 6. Xem danh sách phiếu mượn
     async getAll(query, userRole, userId) {
         const filter = {};
-        
+
         // Nếu là Độc giả, chỉ được xem phiếu của chính mình
         if (userRole === 'user') {
             filter.maDocGia = userId;
@@ -147,6 +151,54 @@ class PhieuMuonService {
             .populate('maSach', 'tenSach hinhAnh tacGia')
             .populate('maDocGia', 'hoLot ten dienThoai diemUyTin')
             .sort({ createdAt: -1 });
+    }
+
+    // 7. Độc giả GỬI YÊU CẦU gia hạn sách
+    async requestExtension(id, maDocGia) {
+        const phieu = await PhieuMuon.findOne({ _id: id, maDocGia: maDocGia });
+        if (!phieu) throw new ApiError(404, 'Không tìm thấy phiếu mượn!');
+
+        if (phieu.trangThai !== 'DANG_MUON') {
+            throw new ApiError(400, 'Chỉ có thể gia hạn sách đang mượn!');
+        }
+        if (new Date(phieu.hanTra) < new Date()) {
+            throw new ApiError(400, 'Sách đã trễ hạn, không thể gia hạn! Vui lòng đem sách đến thư viện trả và nộp phạt.');
+        }
+        if (phieu.soLanGiaHan >= 1 || phieu.trangThaiGiaHan !== 'KHONG') {
+            throw new ApiError(400, 'Bạn đã gia hạn hoặc đang chờ duyệt gia hạn cuốn sách này rồi!');
+        }
+
+        // Chỉ đổi trạng thái, CHƯA cộng ngày
+        phieu.trangThaiGiaHan = 'CHO_DUYET_GIA_HAN';
+        return await phieu.save();
+    }
+
+    // 8. Admin DUYỆT yêu cầu gia hạn
+    async approveExtension(id) {
+        const phieu = await PhieuMuon.findById(id);
+        if (!phieu || phieu.trangThaiGiaHan !== 'CHO_DUYET_GIA_HAN') {
+            throw new ApiError(400, 'Phiếu mượn không có yêu cầu gia hạn nào đang chờ duyệt!');
+        }
+
+        let config = await CaiDatHeThong.findOne() || await CaiDatHeThong.create({});
+
+        // Cộng ngày và đổi trạng thái
+        phieu.hanTra = addDays(phieu.hanTra, config.soNgayMuonToiDa);
+        phieu.soLanGiaHan += 1;
+        phieu.trangThaiGiaHan = 'DA_GIA_HAN';
+
+        return await phieu.save();
+    }
+
+    // 9. Admin TỪ CHỐI yêu cầu gia hạn
+    async rejectExtension(id) {
+        const phieu = await PhieuMuon.findById(id);
+        if (!phieu || phieu.trangThaiGiaHan !== 'CHO_DUYET_GIA_HAN') {
+            throw new ApiError(400, 'Phiếu mượn không có yêu cầu gia hạn nào đang chờ duyệt!');
+        }
+
+        phieu.trangThaiGiaHan = 'TU_CHOI_GIA_HAN';
+        return await phieu.save();
     }
 }
 

@@ -75,7 +75,7 @@
 
     <div v-else class="row row-cols-2 row-cols-md-3 row-cols-lg-5 g-4 mb-5">
       <div class="col" v-for="book in recentBooks" :key="book._id">
-        <div class="card h-100 border-0 shadow-sm rounded-4 book-card overflow-hidden">
+        <div class="card h-100 border-0 shadow-sm rounded-4 book-card overflow-hidden" style="cursor: pointer;" @click="$router.push(`/books/${book._id}`)">
           <div class="bg-light text-center p-3" style="height: 200px;">
             <img :src="getImageUrl(book.hinhAnh)" class="img-fluid h-100 object-fit-contain shadow-sm rounded" :alt="book.tenSach" @error="handleImageError">
           </div>

@@ -36,6 +36,11 @@ const routes = [
                 component: () => import('../views/user/BooksCatalog.vue'), // Trang danh sách sách cũ
             },
             {
+                path: 'books/:id', // <--- THÊM ROUTE NÀY VÀO ĐÂY
+                name: 'BookDetail',
+                component: () => import('../views/user/BookDetail.vue'),
+            },
+            {
                 path: 'cart',
                 name: 'Cart',
                 component: () => import('../views/user/Cart.vue'), // <--- ĐÃ SỬA
