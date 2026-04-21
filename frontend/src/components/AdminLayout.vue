@@ -1,7 +1,6 @@
 <template>
   <div class="admin-layout d-flex min-vh-100 bg-light">
 
-    <!-- SIDEBAR (Cố định trên Desktop, Offcanvas trên Mobile) -->
     <aside class="sidebar bg-white shadow-sm d-flex flex-column" :class="{ 'sidebar-collapsed': !isSidebarOpen }">
       <div class="sidebar-header d-flex align-items-center justify-content-between p-3 border-bottom">
         <router-link to="/" class="text-decoration-none d-flex align-items-center text-primary fw-bold fs-5"
@@ -65,6 +64,15 @@
               <span v-if="isSidebarOpen">Xem Trang Khách</span>
             </router-link>
           </li>
+          
+          <li class="nav-item mb-1">
+            <router-link to="/admin/profile" class="nav-link rounded-3 text-secondary d-flex align-items-center"
+              active-class="active bg-primary text-white shadow-sm">
+              <i class="bi bi-person-vcard-fill me-3 fs-5"></i>
+              <span v-if="isSidebarOpen" class="fw-semibold">Hồ sơ cá nhân</span>
+            </router-link>
+          </li>
+
         </ul>
       </div>
 
@@ -77,9 +85,7 @@
       </div>
     </aside>
 
-    <!-- CONTENT AREA -->
     <main class="flex-grow-1 d-flex flex-column overflow-hidden">
-      <!-- HEADER -->
       <header class="header bg-white shadow-sm d-flex align-items-center justify-content-between px-4 py-3 z-1">
         <div class="d-flex align-items-center">
           <button class="btn btn-light me-3 d-md-none" @click="toggleSidebar">
@@ -94,11 +100,11 @@
               class="btn btn-light dropdown-toggle d-flex align-items-center gap-2 border-0 shadow-sm rounded-pill px-3"
               type="button" data-bs-toggle="dropdown">
               <i class="bi bi-person-circle fs-5 text-primary"></i>
-              <span class="fw-bold text-dark">{{ authStore.user?.hoTen || 'Admin' }}</span>
+              <span class="fw-bold text-dark">{{ authStore.user?.hoTenNV || 'Admin' }}</span>
             </button>
             <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2 rounded-3">
               <li>
-                <router-link to="/profile" class="dropdown-item py-2 fw-semibold text-secondary">
+                <router-link to="/admin/profile" class="dropdown-item py-2 fw-semibold text-secondary">
                   <i class="bi bi-person-badge me-2 text-primary"></i>Hồ sơ cá nhân
                 </router-link>
               </li>
@@ -126,7 +132,6 @@
         </div>
       </header>
 
-      <!-- VÙNG HIỂN THỊ TRANG CON -->
       <div class="content-body p-4 flex-grow-1 overflow-auto">
         <router-view v-slot="{ Component }">
           <transition name="fade" mode="out-in">
@@ -136,7 +141,6 @@
       </div>
     </main>
 
-    <!-- Overlay cho Mobile -->
     <div v-if="isSidebarOpen" class="sidebar-overlay d-md-none" @click="toggleSidebar"></div>
   </div>
 </template>
@@ -166,13 +170,16 @@ const adminInitials = computed(() => {
 
 // Lấy tên Route hiện tại để hiển thị trên Header
 const currentRouteName = computed(() => {
+  // Đồng bộ với file router/index.js của bạn
   switch (route.name) {
+    case 'Dashboard': return 'Tổng quan hệ thống';
     case 'AdminDashboard': return 'Tổng quan hệ thống';
     case 'AdminBooks': return 'Quản lý Sách';
     case 'AdminPublishers': return 'Nhà Xuất Bản';
     case 'AdminReaders': return 'Quản lý Độc giả';
     case 'AdminBorrows': return 'Quản lý Mượn Trả';
     case 'AdminSettings': return 'Cài đặt hệ thống';
+    case 'AdminProfile': return 'Hồ sơ cá nhân';
     default: return 'Quản trị viên';
   }
 });

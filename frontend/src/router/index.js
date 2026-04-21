@@ -22,12 +22,6 @@ const routes = [
         meta: { requiresAuth: true, role: 'user' }
     },
     {
-        path: '/profile',
-        name: 'Profile',
-        component: Profile,
-        meta: { requiresAuth: true } // Yêu cầu đăng nhập
-    },
-    {
         path: '/',
         component: () => import('../components/UserLayout.vue'), // <--- DÙNG LAYOUT MỚI
         meta: { requiresAuth: true, role: 'user' },
@@ -56,6 +50,12 @@ const routes = [
                 path: 'history',
                 name: 'History',
                 component: () => import('../views/user/History.vue'), // <--- ĐÃ SỬA
+            },
+            { 
+                path: 'profile', 
+                name: 'UserProfile', 
+                component: Profile, 
+                meta: { requiresAuth: true } 
             }
         ]
     },
@@ -94,6 +94,11 @@ const routes = [
                 path: 'borrows',
                 name: 'AdminBorrows',
                 component: () => import('../views/admin/Borrows.vue'),
+            },
+            { 
+                path: 'profile', 
+                name: 'AdminProfile', 
+                component: Profile 
             }
         ]
     }
