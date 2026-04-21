@@ -1,296 +1,292 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
 :root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
-
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
-
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light dark;
-  color: var(--text);
-  background: var(--bg);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-
-  @media (max-width: 1024px) {
-    font-size: 16px;
-  }
+  /* Bảng màu Gradient hiện đại (Indigo sang Deep Purple) */
+  --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --bg-color: #f4f7fe; /* Nền xám xanh cực nhạt kiểu macOS */
+  
+  /* Cấu hình Glassmorphism trong suốt (iPadOS vibe) */
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.6);
+  --glass-border-bright: rgba(255, 255, 255, 0.9);
+  
+  /* Đổ bóng sâu, mờ tạo cảm giác lơ lửng */
+  --shadow-soft: 0 20px 40px rgba(0, 0, 0, 0.05);
+  --shadow-float: 0 25px 50px rgba(118, 75, 162, 0.15);
+  
+  --text-main: #2d3748;
+  --text-muted: #718096;
+  
+  /* Hiệu ứng chuyển động đàn hồi */
+  --transition-elastic: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
-  }
-
-  #social .button-icon {
-    filter: invert(1) brightness(2);
-  }
-}
-
-body {
-  margin: 0;
-}
-
-h1,
-h2 {
-  font-family: var(--heading);
-  font-weight: 500;
-  color: var(--text-h);
-}
-
-h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
-  }
-}
-h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
-  }
-}
-p {
-  margin: 0;
-}
-
-code,
-.counter {
-  font-family: var(--mono);
-  display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
-}
-
-code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
-}
-
-.counter {
-  font-size: 16px;
-  padding: 5px 10px;
-  border-radius: 5px;
-  color: var(--accent);
-  background: var(--accent-bg);
-  border: 2px solid transparent;
-  transition: border-color 0.3s;
-  margin-bottom: 24px;
-
-  &:hover {
-    border-color: var(--accent-border);
-  }
-  &:focus-visible {
-    outline: 2px solid var(--accent);
-    outline-offset: 2px;
-  }
-}
-
-.hero {
+html, body {
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif !important;
+  background-color: var(--bg-color) !important;
+  color: var(--text-main) !important;
   position: relative;
-
-  .base,
-  .framework,
-  .vite {
-    inset-inline: 0;
-    margin: 0 auto;
-  }
-
-  .base {
-    width: 170px;
-    position: relative;
-    z-index: 0;
-  }
-
-  .framework,
-  .vite {
-    position: absolute;
-  }
-
-  .framework {
-    z-index: 1;
-    top: 34px;
-    height: 28px;
-    transform: perspective(2000px) rotateZ(300deg) rotateX(44deg) rotateY(39deg)
-      scale(1.4);
-  }
-
-  .vite {
-    z-index: 0;
-    top: 107px;
-    height: 26px;
-    width: auto;
-    transform: perspective(2000px) rotateZ(300deg) rotateX(40deg) rotateY(39deg)
-      scale(0.8);
-  }
-}
-
-#app {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
-  text-align: center;
-  border-inline: 1px solid var(--border);
-  min-height: 100svh;
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
-}
-
-#center {
-  display: flex;
-  flex-direction: column;
-  gap: 25px;
-  place-content: center;
-  place-items: center;
-  flex-grow: 1;
-
-  @media (max-width: 1024px) {
-    padding: 32px 20px 24px;
-    gap: 18px;
-  }
-}
-
-#next-steps {
-  display: flex;
-  border-top: 1px solid var(--border);
-  text-align: left;
-
-  & > div {
-    flex: 1 1 0;
-    padding: 32px;
-    @media (max-width: 1024px) {
-      padding: 24px 20px;
-    }
-  }
-
-  .icon {
-    margin-bottom: 16px;
-    width: 22px;
-    height: 22px;
-  }
-
-  @media (max-width: 1024px) {
-    flex-direction: column;
-    text-align: center;
-  }
-}
-
-#docs {
-  border-right: 1px solid var(--border);
-
-  @media (max-width: 1024px) {
-    border-right: none;
-    border-bottom: 1px solid var(--border);
-  }
-}
-
-#next-steps ul {
-  list-style: none;
+  min-height: 100vh;
+  overflow-x: hidden;
+  margin: 0;
   padding: 0;
-  display: flex;
-  gap: 8px;
-  margin: 32px 0 0;
-
-  .logo {
-    height: 18px;
-  }
-
-  a {
-    color: var(--text-h);
-    font-size: 16px;
-    border-radius: 6px;
-    background: var(--social-bg);
-    display: flex;
-    padding: 6px 12px;
-    align-items: center;
-    gap: 8px;
-    text-decoration: none;
-    transition: box-shadow 0.3s;
-
-    &:hover {
-      box-shadow: var(--shadow);
-    }
-    .button-icon {
-      height: 18px;
-      width: 18px;
-    }
-  }
-
-  @media (max-width: 1024px) {
-    margin-top: 20px;
-    flex-wrap: wrap;
-    justify-content: center;
-
-    li {
-      flex: 1 1 calc(50% - 8px);
-    }
-
-    a {
-      width: 100%;
-      justify-content: center;
-      box-sizing: border-box;
-    }
-  }
 }
 
-#spacer {
-  height: 88px;
-  border-top: 1px solid var(--border);
-  @media (max-width: 1024px) {
-    height: 48px;
-  }
+/* =========================================================================
+   TẠO BACKGROUND BLOBS MÀ KHÔNG CHẠM VÀO HTML
+   Sử dụng pseudo-elements của body để tạo 2 đốm sáng mờ ảo
+   ========================================================================= */
+body::before, body::after {
+  content: '';
+  position: fixed;
+  border-radius: 50%;
+  filter: blur(120px);
+  z-index: -1;
+  opacity: 0.7;
 }
 
-.ticks {
-  position: relative;
-  width: 100%;
+body::before {
+  top: -10%; left: -10%;
+  width: 50vw; height: 50vw;
+  background: #a1c4fd; /* Xanh nhạt */
+}
 
-  &::before,
-  &::after {
-    content: '';
-    position: absolute;
-    top: -4.5px;
-    border: 5px solid transparent;
-  }
+body::after {
+  bottom: -20%; right: -10%;
+  width: 60vw; height: 60vw;
+  background: #e2b0ff; /* Tím nhạt */
+}
 
-  &::before {
-    left: 0;
-    border-left-color: var(--border);
-  }
-  &::after {
-    right: 0;
-    border-right-color: var(--border);
-  }
+/* =========================================================================
+   GLASSMORPHISM CHUNG (Card, Navbar, Modal, Dropdown)
+   ========================================================================= */
+.card, .navbar, .modal-content, .dropdown-menu {
+  background: var(--glass-bg) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+  border: 1px solid var(--glass-border) !important;
+  border-radius: 20px !important;
+  box-shadow: var(--shadow-soft) !important;
+  transition: var(--transition-elastic) !important;
+}
+
+/* =========================================================================
+   CARDS (Floating Effect)
+   ========================================================================= */
+.card {
+  overflow: hidden;
+  color: var(--text-main);
+}
+
+.card:hover {
+  transform: translateY(-10px) !important;
+  box-shadow: var(--shadow-float) !important;
+  border: 1px solid var(--glass-border-bright) !important;
+}
+
+.card-header, .card-footer {
+  background: rgba(255, 255, 255, 0.4) !important;
+  border-bottom: 1px solid var(--glass-border) !important;
+  border-top: 1px solid var(--glass-border) !important;
+  color: var(--text-main) !important;
+  font-weight: 600;
+}
+
+/* =========================================================================
+   BUTTONS (Indigo Gradient & Elastic Antigravity)
+   ========================================================================= */
+.btn {
+  border-radius: 14px !important;
+  font-weight: 500 !important;
+  padding: 10px 24px !important;
+  transition: var(--transition-elastic) !important;
+  border: none !important;
+}
+
+.btn-primary {
+  background: var(--primary-gradient) !important;
+  color: white !important;
+  box-shadow: 0 8px 20px rgba(118, 75, 162, 0.25) !important;
+}
+
+.btn-primary:hover, .btn-primary:active {
+  transform: translateY(-5px) !important;
+  box-shadow: 0 15px 30px rgba(118, 75, 162, 0.4) !important;
+}
+
+.btn-outline-primary {
+  background: rgba(255,255,255,0.5) !important;
+  color: #764ba2 !important;
+  border: 2px solid rgba(118, 75, 162, 0.3) !important;
+  backdrop-filter: blur(5px);
+}
+
+.btn-outline-primary:hover {
+  background: var(--primary-gradient) !important;
+  color: white !important;
+  border-color: transparent !important;
+  transform: translateY(-4px) !important;
+  box-shadow: 0 10px 25px rgba(118, 75, 162, 0.3) !important;
+}
+
+/* =========================================================================
+   NAVBAR (Floating Island macOS style)
+   ========================================================================= */
+.navbar {
+  margin: 1.5rem auto 2rem auto !important;
+  border-radius: 24px !important;
+  padding: 0.8rem 1.5rem !important;
+  max-width: 1200px; /* Tạo cảm giác gọn gàng */
+}
+
+.navbar-brand {
+  font-weight: 700;
+  background: var(--primary-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.nav-link {
+  font-weight: 500;
+  color: var(--text-muted) !important;
+  transition: var(--transition-elastic);
+}
+
+.nav-link:hover, .nav-link.active, .router-link-active {
+  color: #764ba2 !important;
+  transform: translateY(-2px);
+}
+
+/* =========================================================================
+   FORM CONTROLS
+   ========================================================================= */
+.form-control, .form-select {
+  background: rgba(255, 255, 255, 0.6) !important;
+  border: 1px solid rgba(255, 255, 255, 0.9) !important;
+  border-radius: 14px !important;
+  padding: 12px 18px !important;
+  color: var(--text-main) !important;
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.02) !important;
+  transition: var(--transition-elastic) !important;
+  backdrop-filter: blur(10px);
+}
+
+.form-control:focus, .form-select:focus {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border-color: #764ba2 !important;
+  box-shadow: 0 0 0 4px rgba(118, 75, 162, 0.15), 0 10px 20px rgba(0,0,0,0.05) !important;
+  transform: translateY(-2px);
+}
+
+/* =========================================================================
+   TABLES (Floating Rows Antigravity)
+   ========================================================================= */
+.table {
+  border-collapse: separate !important;
+  border-spacing: 0 12px !important;
+  background: transparent !important;
+  color: var(--text-main) !important;
+}
+
+.table th, .table td {
+  border: none !important;
+  background: transparent !important;
+  vertical-align: middle;
+}
+
+.table thead th {
+  color: var(--text-muted) !important;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  letter-spacing: 1px;
+  padding: 0 15px 5px 15px !important;
+  border-bottom: none !important;
+}
+
+.table tbody tr {
+  background: rgba(255, 255, 255, 0.6) !important;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+  transition: var(--transition-elastic) !important;
+}
+
+.table tbody tr:hover {
+  transform: translateY(-6px) scale(1.01) !important;
+  box-shadow: var(--shadow-float) !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+  border: 1px solid var(--glass-border-bright) !important;
+}
+
+.table tbody tr td:first-child {
+  border-top-left-radius: 16px;
+  border-bottom-left-radius: 16px;
+  padding-left: 20px;
+}
+
+.table tbody tr td:last-child {
+  border-top-right-radius: 16px;
+  border-bottom-right-radius: 16px;
+  padding-right: 20px;
+}
+
+/* =========================================================================
+   BADGES & UTILITIES FIX
+   ========================================================================= */
+.badge {
+  border-radius: 10px !important;
+  padding: 0.6em 1em !important;
+  font-weight: 600 !important;
+  backdrop-filter: blur(5px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.bg-light, .bg-white { 
+  background-color: transparent !important; 
+}
+
+.shadow-sm, .shadow, .shadow-lg { 
+  box-shadow: none !important; /* Ghi đè để dùng bóng đổ custom */
+}
+
+/* Giao diện list-group (Sidebar Admin) */
+.list-group-item {
+  background: transparent !important;
+  border-color: rgba(255,255,255,0.4) !important;
+  color: var(--text-main) !important;
+  transition: var(--transition-elastic) !important;
+  border-radius: 12px !important;
+  margin-bottom: 5px;
+}
+
+.list-group-item:hover, .list-group-item.active {
+  background: rgba(255,255,255,0.8) !important;
+  transform: translateX(5px);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+  color: #764ba2 !important;
+  font-weight: 600;
+  border-color: transparent !important;
+}
+
+/* Login/Register Panel Background Override */
+.bg-primary.text-white {
+  background: var(--primary-gradient) !important;
+  color: white !important;
+}
+
+/* Pagination Glassmorphism */
+.page-link {
+  border-radius: 10px !important;
+  margin: 0 4px;
+  border: none !important;
+  background: rgba(255,255,255,0.5) !important;
+  color: var(--text-main) !important;
+  transition: var(--transition-elastic) !important;
+  backdrop-filter: blur(5px);
+}
+
+.page-item.active .page-link, .page-link:hover {
+  background: var(--primary-gradient) !important;
+  color: white !important;
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(118, 75, 162, 0.3) !important;
 }
