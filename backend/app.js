@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path'); // <--- Đã thêm thư viện path ở đây
 const ApiError = require('./app/api-error');
 
 const app = express();
@@ -8,12 +9,14 @@ const app = express();
 app.use(cors()); // Cho phép Frontend gọi API (Cross-Origin Resource Sharing)
 app.use(express.json()); // Phân tích các request có body định dạng JSON
 app.use(express.urlencoded({ extended: true })); // Phân tích form data
+
+// Cho phép truy cập thư mục ảnh công khai
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
-// --- 2. ĐỊNH NGHĨA ROUTES CHÍNH (Sẽ import sau) ---
+// --- 2. ĐỊNH NGHĨA ROUTES CHÍNH ---
 const authRoutes = require('./app/routes/auth.route');
-const nxbRoutes = require('./routes/nhaxuatban.route'); 
-const sachRoutes = require('./routes/sach.route'); 
+const nxbRoutes = require('./app/routes/nhaxuatban.route'); 
+const sachRoutes = require('./app/routes/sach.route'); 
 const uploadRoutes = require('./app/routes/upload.route'); 
 const docGiaRoutes = require('./app/routes/docgia.route'); 
 const phieuMuonRoutes = require('./app/routes/phieumuon.route');
@@ -29,9 +32,10 @@ app.get('/', (req, res) => {
     });
 });
 
+// Đăng ký các Route vào Express
 app.use('/api/auth', authRoutes);
-app.use('/api/publishers', nxbRoutes);  //(Route cho NXB)
-app.use('/api/books', sachRoutes);  //(Route cho Sách)
+app.use('/api/publishers', nxbRoutes);
+app.use('/api/books', sachRoutes);
 app.use('/api/upload', uploadRoutes); 
 app.use('/api/readers', docGiaRoutes); 
 app.use('/api/borrows', phieuMuonRoutes);
@@ -46,18 +50,15 @@ app.use((req, res, next) => {
 });
 
 // Middleware xử lý lỗi tổng (Global Error Handler)
-// Mọi lỗi từ try/catch được next(error) sẽ chạy vào đây
 app.use((error, req, res, next) => {
-    // Trạng thái mặc định là 500 (Internal Server Error) nếu không được chỉ định
     const statusCode = error.statusCode || 500;
     const message = error.message || "Lỗi máy chủ nội bộ";
 
-    // Trả về JSON chuẩn hóa theo yêu cầu
     return res.status(statusCode).json({
         success: false,
         message: message,
         data: null,
-        error: process.env.NODE_ENV === 'development' ? error.stack : error // Ẩn stack trace nếu là production
+        error: process.env.NODE_ENV === 'development' ? error.stack : error
     });
 });
 
