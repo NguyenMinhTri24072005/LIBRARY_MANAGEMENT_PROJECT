@@ -103,17 +103,16 @@ class PhieuMuonService {
         phieu.ngayTraThucTe = new Date();
         phieu.trangThai = 'DA_TRA';
 
-        // Tính ngày trễ
         const soNgayTre = calculateDaysDifference(phieu.ngayTraThucTe, phieu.hanTra);
         const docGia = await DocGia.findById(phieu.maDocGia);
 
         if (soNgayTre > 0) {
-            // Trễ hạn: Tính tiền phạt và trừ uy tín
+            // Trễ hạn: Tính tiền phạt và trừ uy tín (Trừ 5 điểm/lần)
             phieu.tienPhat = soNgayTre * config.phiPhatTrenNgay;
-            docGia.diemUyTin = Math.max(0, docGia.diemUyTin - 5); // Trừ 5 điểm, không để âm
+            docGia.diemUyTin = Math.max(0, docGia.diemUyTin - 5); // Không để âm
         } else {
-            // Đúng hạn: Cộng uy tín
-            docGia.diemUyTin += 2;
+            // Đúng hạn: Cộng uy tín (Tối đa 100 điểm)
+            docGia.diemUyTin = Math.min(100, docGia.diemUyTin + 2);
         }
 
         await docGia.save();

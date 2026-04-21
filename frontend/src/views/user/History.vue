@@ -66,8 +66,8 @@
 
               <!-- Trạng thái -->
               <td class="text-center">
-                <span class="badge" :class="getStatusBadge(phieu.trangThai)">
-                  {{ getStatusText(phieu.trangThai) }}
+                <span class="badge" :class="getStatusBadge(phieu)">
+                  {{ getStatusText(phieu) }}
                 </span>
               </td>
 
@@ -149,18 +149,20 @@ const isOverdue = (hanTraString) => {
   return hanTra < today;
 };
 
-const getStatusText = (status) => {
-  switch (status) {
+const getStatusText = (phieu) => {
+  if (phieu.trangThai === 'DANG_MUON' && isOverdue(phieu.hanTra)) return 'Quá hạn';
+  switch (phieu.trangThai) {
     case 'CHO_DUYET': return 'Chờ duyệt';
     case 'DANG_MUON': return 'Đang mượn';
     case 'DA_TRA': return 'Đã trả';
     case 'DA_HUY': return 'Đã hủy';
-    default: return status;
+    default: return phieu.trangThai;
   }
 };
 
-const getStatusBadge = (status) => {
-  switch (status) {
+const getStatusBadge = (phieu) => {
+  if (phieu.trangThai === 'DANG_MUON' && isOverdue(phieu.hanTra)) return 'bg-danger animation-blink';
+  switch (phieu.trangThai) {
     case 'CHO_DUYET': return 'bg-warning text-dark';
     case 'DANG_MUON': return 'bg-primary';
     case 'DA_TRA': return 'bg-success';
@@ -199,23 +201,23 @@ const extendBorrow = (id) => {
   });
 };
 const requestExtension = (id) => {
-    Swal.fire({
-        title: 'Xin gia hạn sách?',
-        text: "Yêu cầu của bạn sẽ được gửi đến Thủ thư để chờ duyệt.",
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonColor: '#764ba2',
-        cancelButtonText: 'Hủy',
-        confirmButtonText: 'Gửi yêu cầu'
-    }).then(async (result) => {
-        if (result.isConfirmed) {
-            try {
-                await api.put(`/borrows/${id}/extend-request`);
-                Swal.fire('Thành công', 'Đã gửi yêu cầu gia hạn!', 'success');
-                fetchHistory(); // Load lại lịch sử
-            } catch (error) {}
-        }
-    });
+  Swal.fire({
+    title: 'Xin gia hạn sách?',
+    text: "Yêu cầu của bạn sẽ được gửi đến Thủ thư để chờ duyệt.",
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonColor: '#764ba2',
+    cancelButtonText: 'Hủy',
+    confirmButtonText: 'Gửi yêu cầu'
+  }).then(async (result) => {
+    if (result.isConfirmed) {
+      try {
+        await api.put(`/borrows/${id}/extend-request`);
+        Swal.fire('Thành công', 'Đã gửi yêu cầu gia hạn!', 'success');
+        fetchHistory(); // Load lại lịch sử
+      } catch (error) { }
+    }
+  });
 };
 
 onMounted(() => {
@@ -231,4 +233,6 @@ onMounted(() => {
 .bg-primary {
   background-color: var(--accent) !important;
 }
+.animation-blink { animation: blinker 1s linear infinite; }
+@keyframes blinker { 50% { opacity: 0.5; } }
 </style>

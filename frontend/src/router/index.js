@@ -112,15 +112,12 @@ router.beforeEach((to, from) => {
         return '/login';
     }
 
-    // 3. Chặn Độc giả (user) vào trang Admin và ngược lại
+    // 3. Chặn Độc giả (user) vào trang Admin
     if (to.meta.role === 'admin' && !isAdmin) {
         return '/';
     }
-    if (to.meta.role === 'user' && isAdmin) {
-        return '/admin';
-    }
 
-    // Nếu hợp lệ, tự động cho qua (không cần return)
+    // Nếu hợp lệ, tự động cho qua
     return true;
 });
 

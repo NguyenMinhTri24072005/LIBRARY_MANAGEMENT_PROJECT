@@ -4,7 +4,7 @@
     <!-- SIDEBAR (Cố định trên Desktop, Offcanvas trên Mobile) -->
     <aside class="sidebar bg-white shadow-sm d-flex flex-column" :class="{ 'sidebar-collapsed': !isSidebarOpen }">
       <div class="sidebar-header d-flex align-items-center justify-content-between p-3 border-bottom">
-        <router-link to="/admin" class="text-decoration-none d-flex align-items-center text-primary fw-bold fs-5">
+        <router-link to="/" class="text-decoration-none d-flex align-items-center text-primary fw-bold fs-5" title="Quay ra Trang chủ Độc giả">
           <i class="bi bi-book-half me-2 fs-4"></i>
           <span v-if="isSidebarOpen">Thư Viện Vie</span>
         </router-link>
@@ -49,6 +49,12 @@
             <router-link to="/admin/settings" class="nav-link rounded-3 text-secondary d-flex align-items-center" active-class="active bg-primary text-white shadow-sm">
               <i class="bi bi-gear-fill me-3 fs-5"></i>
               <span v-if="isSidebarOpen">Cài đặt</span>
+            </router-link>
+          </li>
+          <li class="nav-item mb-2 border-bottom pb-2">
+            <router-link to="/" class="nav-link rounded-3 text-success fw-bold d-flex align-items-center bg-success bg-opacity-10">
+              <i class="bi bi-house-door-fill me-3 fs-5"></i>
+              <span v-if="isSidebarOpen">Xem Trang Khách</span>
             </router-link>
           </li>
         </ul>

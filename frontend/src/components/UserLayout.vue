@@ -33,16 +33,16 @@
                                 <i class="bi bi-collection me-1"></i> Tủ Sách
                             </router-link>
                         </li>
-                        <!-- Nút Giỏ Sách -->
-                        <li class="nav-item me-lg-2">
+
+                        <!-- CHỈ HIỂN THỊ GIỎ SÁCH NẾU LÀ ĐỘC GIẢ -->
+                        <li class="nav-item me-lg-2" v-if="!authStore.isAdmin">
                             <router-link to="/cart" class="nav-link position-relative d-flex align-items-center">
                                 <i class="bi bi-cart3 fs-4 text-dark"></i>
                                 <span v-if="cartStore.totalItems > 0"
                                     class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
                                     style="margin-left: -5px; margin-top: 5px;">
-                                    {{ cartStore.totalItems }} <!-- ĐÃ SỬA THÀNH BIẾN -->
+                                    {{ cartStore.totalItems }}
                                 </span>
-                                <span class="d-lg-none ms-2 text-dark fw-semibold">Giỏ sách</span>
                             </router-link>
                         </li>
 
@@ -54,28 +54,31 @@
                                     style="width: 35px; height: 35px;">
                                     {{ userInitials }}
                                 </div>
-                                <span class="fw-semibold text-dark d-lg-none d-xl-inline">{{ authStore.user?.ten
-                                    }}</span>
+                                <span class="fw-semibold text-dark d-lg-none d-xl-inline">{{ authStore.user?.ten ||
+                                    authStore.user?.hoTenNV }}</span>
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2 rounded-3">
-                                <li>
+                                <li v-if="!authStore.isAdmin">
                                     <h6 class="dropdown-header text-primary fw-bold">Điểm uy tín: <i
                                             class="bi bi-star-fill text-warning"></i> {{ authStore.user?.diemUyTin ||
-                                                100 }}</h6>
+                                        100 }}</h6>
                                 </li>
-                                <li>
+                                <li v-if="!authStore.isAdmin">
                                     <hr class="dropdown-divider">
                                 </li>
-                                <li>
+                                <li v-if="!authStore.isAdmin">
                                     <router-link to="/history" class="dropdown-item py-2">
                                         <i class="bi bi-clock-history me-2 text-muted"></i>Lịch sử mượn trả
                                     </router-link>
                                 </li>
-                                <li>
-                                    <a class="dropdown-item py-2" href="#">
-                                        <i class="bi bi-person me-2 text-muted"></i>Hồ sơ cá nhân
-                                    </a>
+
+                                <!-- NÚT DÀNH RIÊNG CHO ADMIN QUAY VỀ DASHBOARD -->
+                                <li v-if="authStore.isAdmin">
+                                    <router-link to="/admin" class="dropdown-item py-2 text-primary fw-bold">
+                                        <i class="bi bi-shield-lock-fill me-2"></i>Vào Trang Quản Trị
+                                    </router-link>
                                 </li>
+
                                 <li>
                                     <hr class="dropdown-divider">
                                 </li>

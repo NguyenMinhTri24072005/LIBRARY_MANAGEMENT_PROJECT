@@ -32,7 +32,8 @@
                 <div class="card h-100 border-0 shadow-sm rounded-4 book-card overflow-hidden">
 
                     <!-- Ảnh bìa sách -->
-                    <div class="position-relative bg-light text-center p-3" style="height: 250px; cursor: pointer;" @click="$router.push(`/books/${book._id}`)">
+                    <div class="position-relative bg-light text-center p-3" style="height: 250px; cursor: pointer;"
+                        @click="$router.push(`/books/${book._id}`)">
                         <img :src="getImageUrl(book.hinhAnh)"
                             class="img-fluid h-100 object-fit-contain shadow-sm rounded" :alt="book.tenSach"
                             @error="handleImageError">
@@ -63,15 +64,17 @@
 
                     <!-- Nút Thêm vào giỏ -->
                     <div class="card-footer bg-white border-0 p-3 pt-0">
-                        <button class="btn w-100 fw-bold rounded-3 shadow-sm"
+                        <button v-if="!authStore.isAdmin" class="btn w-100 fw-bold rounded-3 shadow-sm"
                             :class="cartStore.isInCart(book._id) ? 'btn-success' : 'btn-primary'"
                             :disabled="book.soQuyenHienTai <= 0 || cartStore.isInCart(book._id)"
-                            @click="handleAddToCart(book)">
-
+                            @click.stop="handleAddToCart(book)">
                             <span v-if="cartStore.isInCart(book._id)"><i class="bi bi-check-lg me-1"></i> Đã chọn</span>
                             <span v-else-if="book.soQuyenHienTai <= 0"><i class="bi bi-x-circle me-1"></i> Hết
                                 sách</span>
                             <span v-else><i class="bi bi-cart-plus me-1"></i> Mượn sách</span>
+                        </button>
+                        <button v-else class="btn w-100 fw-bold rounded-3 btn-secondary" disabled>
+                            <i class="bi bi-shield-lock me-1"></i> Dành cho Độc giả
                         </button>
                     </div>
 
@@ -86,8 +89,10 @@
 import { ref, onMounted } from 'vue';
 import api from '../../services/api';
 import { useCartStore } from '../../store/cart.store';
+import { useAuthStore } from '../../store/auth.store';
 
 const cartStore = useCartStore();
+const authStore = useAuthStore();
 
 const books = ref([]);
 const publishers = ref([]);
@@ -107,6 +112,7 @@ const fetchBooks = async () => {
     } catch (error) { console.error(error); }
     finally { isLoading.value = false; }
 };
+
 
 const fetchPublishers = async () => {
     try {

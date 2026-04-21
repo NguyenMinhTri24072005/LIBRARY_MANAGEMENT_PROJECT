@@ -26,7 +26,7 @@
 
                 <h1 class="fw-bolder text-dark mb-3">{{ book.tenSach }}</h1>
                 <h5 class="text-muted mb-4"><i class="bi bi-pen me-2"></i>Tác giả: <span class="text-dark">{{
-                        book.tacGia }}</span></h5>
+                    book.tacGia }}</span></h5>
 
                 <div class="d-flex align-items-center gap-4 mb-4 pb-4 border-bottom">
                     <div>
@@ -45,18 +45,21 @@
                     </div>
                 </div>
 
-                <!-- Nút hành động -->
-                <div class="d-flex gap-3 mt-4">
-                    <button class="btn btn-lg px-5 fw-bold rounded-pill shadow-sm d-flex align-items-center"
+                <!-- Nút Thêm vào giỏ -->
+                <div class="card-footer bg-white border-0 p-3 pt-0">
+                    <button v-if="!authStore.isAdmin" class="btn w-100 fw-bold rounded-3 shadow-sm"
                         :class="cartStore.isInCart(book._id) ? 'btn-success' : 'btn-primary'"
                         :disabled="book.soQuyenHienTai <= 0 || cartStore.isInCart(book._id)"
-                        @click="handleAddToCart(book)">
-
-                        <i class="bi fs-5 me-2"
-                            :class="cartStore.isInCart(book._id) ? 'bi-check-lg' : 'bi-cart-plus'"></i>
-                        {{ cartStore.isInCart(book._id) ? 'Đã có trong giỏ' : (book.soQuyenHienTai > 0 ? 'Thêm Vào Giỏ Sách' : 'Tạm Hết Hàng') }}
+                        @click.stop="handleAddToCart(book)">
+                        <span v-if="cartStore.isInCart(book._id)"><i class="bi bi-check-lg me-1"></i> Đã chọn</span>
+                        <span v-else-if="book.soQuyenHienTai <= 0"><i class="bi bi-x-circle me-1"></i> Hết sách</span>
+                        <span v-else><i class="bi bi-cart-plus me-1"></i> Mượn sách</span>
+                    </button>
+                    <button v-else class="btn w-100 fw-bold rounded-3 btn-secondary" disabled>
+                        <i class="bi bi-shield-lock me-1"></i> Dành cho Độc giả
                     </button>
                 </div>
+
 
                 <div class="alert alert-light border mt-4 text-muted small">
                     <i class="bi bi-info-circle-fill text-primary me-2"></i>
@@ -72,10 +75,12 @@ import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import api from '../../services/api';
 import { useCartStore } from '../../store/cart.store';
+import { useAuthStore } from '../../store/auth.store';
 
 const route = useRoute();
 const router = useRouter();
 const cartStore = useCartStore();
+const authStore = useAuthStore();
 
 const book = ref(null);
 const isLoading = ref(true);
