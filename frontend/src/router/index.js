@@ -17,16 +17,35 @@ const routes = [
     // --- KHU VỰC ADMIN ---
     {
         path: '/admin',
-        component: () => import('../components/AdminLayout.vue'), // Layout cha bọc bên ngoài
+        component: () => import('../components/AdminLayout.vue'),
         meta: { requiresAuth: true, role: 'admin' },
         children: [
             {
-                path: '', // Đường dẫn mặc định khi vào /admin
+                path: '', 
                 name: 'AdminDashboard',
                 component: () => import('../views/admin/Dashboard.vue'),
             },
-            // Các trang con khác sẽ thêm vào đây sau:
-            // { path: 'books', name: 'AdminBooks', component: ... }
+            {
+                path: 'settings',
+                name: 'AdminSettings',
+                component: () => import('../views/admin/Settings.vue'),
+            },
+            {
+                path: 'books',
+                name: 'AdminBooks',
+                component: () => import('../views/admin/Books.vue'),
+            },
+            // Tạm thời trỏ về một view trống hoặc Dashboard để không bị lỗi "No match found"
+            {
+                path: 'readers',
+                name: 'AdminReaders',
+                component: () => import('../views/admin/Dashboard.vue'),
+            },
+            {
+                path: 'borrows',
+                name: 'AdminBorrows',
+                component: () => import('../views/admin/Dashboard.vue'),
+            }
         ]
     }
 ];
@@ -36,30 +55,31 @@ const router = createRouter({
     routes,
 });
 
-router.beforeEach((to, from, next) => {
+router.beforeEach((to, from) => {
     const authStore = useAuthStore();
     const isAuthenticated = authStore.isAuthenticated;
     const isAdmin = authStore.isAdmin;
 
     // 1. Nếu đã đăng nhập mà cố vào trang Login -> Đẩy về trang chủ tương ứng
     if (to.meta.requiresGuest && isAuthenticated) {
-        return next(isAdmin ? '/admin' : '/');
+        return isAdmin ? '/admin' : '/';
     }
 
     // 2. Chặn người chưa đăng nhập vào trang yêu cầu Auth
     if (to.meta.requiresAuth && !isAuthenticated) {
-        return next('/login');
+        return '/login';
     }
 
     // 3. Chặn Độc giả (user) vào trang Admin và ngược lại
     if (to.meta.role === 'admin' && !isAdmin) {
-        return next('/');
+        return '/';
     }
     if (to.meta.role === 'user' && isAdmin) {
-        return next('/admin');
+        return '/admin';
     }
 
-    next();
+    // Nếu hợp lệ, tự động cho qua (không cần return)
+    return true; 
 });
 
 export default router;
