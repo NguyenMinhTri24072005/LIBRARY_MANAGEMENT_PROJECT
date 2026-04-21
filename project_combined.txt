@@ -207,7 +207,7 @@ exports.getMe = async (req, res, next) => {
 
         if (!userData) {
             console.log(id)
-            return next(new ApiError(404, "Không tìm thấy người dùng"));
+            return next(new ApiError(401, "Tài khoản không còn tồn tại. Vui lòng đăng nhập lại."));
         }
 
         return res.status(200).json({
@@ -265,7 +265,7 @@ exports.changePassword = async (req, res, next) => {
             user = await DocGia.findById(id);
         }
 
-        if (!user) return next(new ApiError(404, "Không tìm thấy người dùng."));
+        if (!user) return next(new ApiError(401, "Tài khoản không còn tồn tại. Vui lòng đăng nhập lại."));
 
         // 2. Kiểm tra mật khẩu cũ
         const isMatch = await bcrypt.compare(oldPassword, user.password);
@@ -732,7 +732,7 @@ const docGiaSchema = new mongoose.Schema({
     password: { type: String, required: true },
     diemUyTin: { type: Number, default: 100 }, // Điểm uy tín, trừ khi trả trễ, cộng khi trả đúng hạn
     trangThai: { type: Boolean, default: true }, // true = Hoạt động, false = Bị khóa (không cho mượn)
-    avatar: { type: String, default: "" }, // Thêm trường lưu ảnh đại diện
+    hinhAnh: { type: String, default: "" }, // Thêm trường lưu ảnh đại diện
 }, { timestamps: true });
 
 module.exports = mongoose.model('DocGia', docGiaSchema);
@@ -769,7 +769,7 @@ const nhanVienSchema = new mongoose.Schema({
     chucVu: { type: String, default: 'Thủ thư' },
     diaChi: { type: String },
     soDienThoai: { type: String, required: true, unique: true }, // Dùng SĐT làm tài khoản đăng nhập
-    avatar: { type: String, default: "" }, // Thêm trường lưu ảnh đại diện
+    hinhAnh: { type: String, default: "" }, // Thêm trường lưu ảnh đại diện
 }, { timestamps: true });
 
 module.exports = mongoose.model('NhanVien', nhanVienSchema);
@@ -4552,18 +4552,46 @@ const seedData = async () => {
         // 3. Tạo NXB
         const nxbs = await NhaXuatBan.insertMany([
             { tenNXB: "NXB Trẻ", diaChi: "TP.HCM" },
-            { tenNXB: "NXB Kim Đồng", diaChi: "TP.HCM" }
+            { tenNXB: "NXB Kim Đồng", diaChi: "TP.HCM" },
+            { tenNXB: "NXB Giáo Dục", diaChi: "Hà Nội" },
+            { tenNXB: "NXB Văn Học", diaChi: "Hà Nội" }
         ]);
 
         // 4. Tạo Sách
         const sachs = await Sach.insertMany([
-            { tenSach: "Đắc Nhân Tâm", tacGia: "Dale Carnegie", maNXB: nxbs[0]._id, donGia: 85000, soQuyen: 10, soQuyenHienTai: 10 },
-            { tenSach: "Nhà Giả Kim", tacGia: "Paulo Coelho", maNXB: nxbs[1]._id, donGia: 70000, soQuyen: 5, soQuyenHienTai: 5 }
+            { tenSach: "Đắc Nhân Tâm", tacGia: "Dale Carnegie", maNXB: nxbs[0]._id, namXuatBan: 2020, donGia: 85000, soQuyen: 10, soQuyenHienTai: 10 },
+            { tenSach: "Nhà Giả Kim", tacGia: "Paulo Coelho", maNXB: nxbs[1]._id, namXuatBan: 2019, donGia: 70000, soQuyen: 5, soQuyenHienTai: 4 },
+            { tenSach: "Lập trình C++ căn bản", tacGia: "Nhiều tác giả", maNXB: nxbs[2]._id, namXuatBan: 2021, donGia: 120000, soQuyen: 15, soQuyenHienTai: 15 },
+            { tenSach: "Tuổi trẻ đáng giá bao nhiêu", tacGia: "Rosie Nguyễn", maNXB: nxbs[3]._id, namXuatBan: 2018, donGia: 90000, soQuyen: 20, soQuyenHienTai: 20 },
+            { tenSach: "Tôi thấy hoa vàng trên cỏ xanh", tacGia: "Nguyễn Nhật Ánh", maNXB: nxbs[0]._id, namXuatBan: 2015, donGia: 110000, soQuyen: 8, soQuyenHienTai: 8 },
+            { tenSach: "Sapiens: Lược Sử Loài Người", tacGia: "Yuval Noah Harari", maNXB: nxbs[1]._id, namXuatBan: 2020, donGia: 150000, soQuyen: 12, soQuyenHienTai: 12 },
+            { tenSach: "Muôn Kiếp Nhân Sinh", tacGia: "Nguyên Phong", maNXB: nxbs[0]._id, namXuatBan: 2021, donGia: 130000, soQuyen: 15, soQuyenHienTai: 15 },
+            { tenSach: "Cấu trúc dữ liệu và giải thuật", tacGia: "Nguyễn Đức Nghĩa", maNXB: nxbs[2]._id, namXuatBan: 2018, donGia: 95000, soQuyen: 20, soQuyenHienTai: 20 },
+            { tenSach: "Clean Code", tacGia: "Robert C. Martin", maNXB: nxbs[2]._id, namXuatBan: 2017, donGia: 250000, soQuyen: 7, soQuyenHienTai: 7 },
+            { tenSach: "Dế Mèn Phiêu Lưu Ký", tacGia: "Tô Hoài", maNXB: nxbs[1]._id, namXuatBan: 2010, donGia: 45000, soQuyen: 30, soQuyenHienTai: 30 },
+            { tenSach: "Cho Tôi Xin Một Vé Đi Tuổi Thơ", tacGia: "Nguyễn Nhật Ánh", maNXB: nxbs[0]._id, namXuatBan: 2018, donGia: 80000, soQuyen: 14, soQuyenHienTai: 14 },
+            { tenSach: "Kafka Bên Bờ Biển", tacGia: "Haruki Murakami", maNXB: nxbs[3]._id, namXuatBan: 2019, donGia: 145000, soQuyen: 9, soQuyenHienTai: 9 },
+            { tenSach: "Tâm Lý Học Tội Phạm", tacGia: "Stanton E. Samenow", maNXB: nxbs[3]._id, namXuatBan: 2022, donGia: 160000, soQuyen: 11, soQuyenHienTai: 11 },
+            { tenSach: "Hoàng Tử Bé", tacGia: "Antoine De Saint-Exupéry", maNXB: nxbs[1]._id, namXuatBan: 2021, donGia: 55000, soQuyen: 25, soQuyenHienTai: 25 },
+            { tenSach: "Nhập môn Trí tuệ nhân tạo", tacGia: "Stuart Russell", maNXB: nxbs[2]._id, namXuatBan: 2020, donGia: 300000, soQuyen: 5, soQuyenHienTai: 5 }
         ]);
 
         // 5. Tạo Độc giả (Sử dụng hashedUserPwd)
         const docGias = await DocGia.insertMany([
-            { hoLot: "Nguyễn", ten: "An", dienThoai: "0901234567", password: hashedUserPwd, phai: "Nam", diemUyTin: 100, trangThai: true }
+            { hoLot: "Nguyễn", ten: "An", dienThoai: "0901234567", password: hashedUserPwd, phai: "Nam", diemUyTin: 100, trangThai: true },
+            { hoLot: "Trần", ten: "Bình", dienThoai: "0902222222", password: hashedUserPwd, phai: "Nam", diemUyTin: 100, trangThai: true },
+            { hoLot: "Lê", ten: "Hoa", dienThoai: "0903333333", password: hashedUserPwd, phai: "Nữ", diemUyTin: 90, trangThai: true }
+        ]);
+
+        // 6. Tạo Phiếu Mượn
+        await PhieuMuon.insertMany([
+            {
+                maDocGia: docGias[0]._id,
+                maSach: sachs[1]._id,
+                ngayMuon: new Date(),
+                hanTra: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
+                trangThai: 'DANG_MUON'
+            }
         ]);
 
         console.log("✅ SEED DỮ LIỆU THÀNH CÔNG!");
@@ -7054,13 +7082,17 @@ export const useAuthStore = defineStore('auth', {
         },
         // Gọi API để lấy thông tin mới nhất của User (Cập nhật điểm uy tín, trạng thái khóa...)
         async fetchCurrentUser() {
-            if (!this.token || this.user?.role === 'admin') return; // Chỉ cập nhật cho Độc giả
+            if (!this.token) return;
 
             try {
-                const res = await api.get('/readers/profile');
-                if (res.data) {
-                    // Giữ lại role 'user' và ghi đè các thông tin mới từ DB
-                    this.user = { ...res.data, role: 'user' };
+                const isAdmin = this.user?.chucVu === 'Thủ thư' || this.user?.chucVu === 'Admin' || this.user?.role === 'admin';
+                const endpoint = isAdmin ? '/auth/me' : '/readers/profile';
+                
+                const res = await api.get(endpoint);
+                const freshData = res.data?.data || res.data;
+                
+                if (freshData) {
+                    this.user = { ...this.user, ...freshData };
                 }
             } catch (error) {
                 console.error("Không thể cập nhật thông tin User", error);
