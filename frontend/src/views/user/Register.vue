@@ -4,7 +4,6 @@
       <div class="card shadow-lg border-0 rounded-4 overflow-hidden mx-auto" style="max-width: 900px;">
         <div class="row g-0">
           
-          <!-- Cột trái: Banner -->
           <div class="col-md-5 d-none d-md-flex flex-column bg-primary align-items-center justify-content-center text-center p-5 text-white" 
                style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
             <i class="bi bi-person-plus-fill display-1 mb-3"></i>
@@ -12,14 +11,12 @@
             <p class="text-white-50">Trở thành thành viên của Thư Viện Vie để mượn hàng ngàn cuốn sách miễn phí.</p>
           </div>
 
-          <!-- Cột phải: Form Đăng ký -->
           <div class="col-md-7 bg-white p-4 p-lg-5">
             <div class="text-center mb-4 d-md-none">
               <h3 class="fw-bold text-dark">Đăng Ký</h3>
             </div>
             
             <form @submit.prevent="handleRegister" class="row g-3">
-              <!-- Họ lót & Tên -->
               <div class="col-sm-7">
                 <label class="form-label fw-semibold text-muted small mb-1">Họ lót <span class="text-danger">*</span></label>
                 <input type="text" class="form-control bg-light border-0" v-model="formData.hoLot" required>
@@ -29,10 +26,14 @@
                 <input type="text" class="form-control bg-light border-0" v-model="formData.ten" required>
               </div>
 
-              <!-- Số điện thoại & Giới tính -->
               <div class="col-sm-7">
                 <label class="form-label fw-semibold text-muted small mb-1">Số điện thoại (Dùng đăng nhập) <span class="text-danger">*</span></label>
-                <input type="text" class="form-control bg-light border-0" v-model="formData.dienThoai" required>
+                <input type="tel" 
+                       class="form-control bg-light border-0" 
+                       v-model="formData.dienThoai" 
+                       required 
+                       pattern="[0-9]{10,11}" 
+                       title="Vui lòng nhập số điện thoại hợp lệ (từ 10 đến 11 chữ số)">
               </div>
               <div class="col-sm-5">
                 <label class="form-label fw-semibold text-muted small mb-1">Giới tính</label>
@@ -43,19 +44,16 @@
                 </select>
               </div>
 
-              <!-- Mật khẩu -->
               <div class="col-12">
                 <label class="form-label fw-semibold text-muted small mb-1">Mật khẩu <span class="text-danger">*</span></label>
                 <input type="password" class="form-control bg-light border-0" v-model="formData.password" required minlength="6">
               </div>
 
-              <!-- Địa chỉ -->
               <div class="col-12">
                 <label class="form-label fw-semibold text-muted small mb-1">Địa chỉ</label>
                 <input type="text" class="form-control bg-light border-0" v-model="formData.diaChi">
               </div>
 
-              <!-- Ngày sinh -->
               <div class="col-12 mb-2">
                 <label class="form-label fw-semibold text-muted small mb-1">Ngày sinh</label>
                 <input type="date" class="form-control bg-light border-0" v-model="formData.ngaySinh">

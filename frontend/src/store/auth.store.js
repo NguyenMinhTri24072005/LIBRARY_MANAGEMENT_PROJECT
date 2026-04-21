@@ -44,6 +44,7 @@ export const useAuthStore = defineStore('auth', {
                 console.error("Không thể cập nhật thông tin User", error);
             }
         },
+
         logout() {
             this.user = null;
             this.token = null;

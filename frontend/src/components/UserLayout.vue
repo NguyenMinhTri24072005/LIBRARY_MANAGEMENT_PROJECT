@@ -1,22 +1,18 @@
 <template>
     <div class="min-vh-100 d-flex flex-column bg-light">
-        <!-- HEADER -->
         <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
             <div class="container">
-                <!-- Logo -->
                 <router-link class="navbar-brand d-flex align-items-center fw-bold text-primary" to="/">
                     <i class="bi bi-book-half fs-3 me-2"></i>
                     <span class="fs-4">Thư Viện Vie</span>
                 </router-link>
 
-                <!-- Nút toggle cho mobile -->
                 <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse"
                     data-bs-target="#navbarUser">
                     <span class="navbar-toggler-icon"></span>
                 </button>
 
                 <div class="collapse navbar-collapse" id="navbarUser">
-                    <!-- Thanh tìm kiếm (Chiếm phần giữa) -->
                     <form class="d-flex mx-lg-auto my-3 my-lg-0 w-100" style="max-width: 500px;">
                         <div class="input-group">
                             <input type="text" class="form-control border-primary bg-light"
@@ -25,7 +21,6 @@
                         </div>
                     </form>
 
-                    <!-- Menu bên phải -->
                     <ul class="navbar-nav align-items-lg-center gap-2">
                         <li class="nav-item me-lg-2">
                             <router-link to="/books" class="nav-link fw-bold text-dark d-flex align-items-center"
@@ -34,7 +29,6 @@
                             </router-link>
                         </li>
 
-                        <!-- CHỈ HIỂN THỊ GIỎ SÁCH NẾU LÀ ĐỘC GIẢ -->
                         <li class="nav-item me-lg-2" v-if="!authStore.isAdmin">
                             <router-link to="/cart" class="nav-link position-relative d-flex align-items-center">
                                 <i class="bi bi-cart3 fs-4 text-dark"></i>
@@ -46,7 +40,6 @@
                             </router-link>
                         </li>
 
-                        <!-- Dropdown User -->
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="#" role="button"
                                 data-bs-toggle="dropdown">
@@ -66,13 +59,19 @@
                                 <li v-if="!authStore.isAdmin">
                                     <hr class="dropdown-divider">
                                 </li>
+
+                                <li>
+                                    <router-link to="/profile" class="dropdown-item py-2">
+                                        <i class="bi bi-person-vcard me-2 text-primary"></i>Hồ sơ cá nhân
+                                    </router-link>
+                                </li>
+
                                 <li v-if="!authStore.isAdmin">
                                     <router-link to="/history" class="dropdown-item py-2">
                                         <i class="bi bi-clock-history me-2 text-muted"></i>Lịch sử mượn trả
                                     </router-link>
                                 </li>
 
-                                <!-- NÚT DÀNH RIÊNG CHO ADMIN QUAY VỀ DASHBOARD -->
                                 <li v-if="authStore.isAdmin">
                                     <router-link to="/admin" class="dropdown-item py-2 text-primary fw-bold">
                                         <i class="bi bi-shield-lock-fill me-2"></i>Vào Trang Quản Trị
@@ -94,7 +93,6 @@
             </div>
         </nav>
 
-        <!-- MAIN CONTENT -->
         <main class="flex-grow-1 container py-4">
             <router-view v-slot="{ Component }">
                 <transition name="fade" mode="out-in">
@@ -103,7 +101,6 @@
             </router-view>
         </main>
 
-        <!-- FOOTER -->
         <footer class="bg-white border-top py-4 mt-auto">
             <div class="container text-center text-muted small">
                 <p class="mb-1">&copy; 2024 Thư Viện Vie. Đồ án CT449 - Nguyễn Minh Trí.</p>

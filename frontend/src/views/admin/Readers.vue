@@ -1,11 +1,9 @@
 <template>
   <div>
-    <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
       <h4 class="fw-bold text-dark mb-0"><i class="bi bi-people-fill text-primary me-2"></i>Quản Lý Độc Giả</h4>
     </div>
 
-    <!-- Thanh tìm kiếm -->
     <div class="card border-0 shadow-sm rounded-4 mb-4">
       <div class="card-body p-3">
         <div class="input-group">
@@ -15,7 +13,6 @@
       </div>
     </div>
 
-    <!-- Bảng danh sách Độc giả -->
     <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
       <div class="table-responsive">
         <table class="table table-hover align-middle mb-0">
@@ -51,14 +48,15 @@
                 </span>
               </td>
               <td class="text-end pe-4">
-                <!-- Nút Khóa / Mở Khóa -->
+                <button class="btn btn-sm btn-outline-info me-2" @click="openEditModal(reader)" title="Sửa thông tin">
+                  <i class="bi bi-pencil-square"></i>
+                </button>
                 <button class="btn btn-sm me-2" 
                         :class="reader.trangThai ? 'btn-outline-warning' : 'btn-outline-success'"
                         @click="toggleStatus(reader)"
                         :title="reader.trangThai ? 'Khóa tài khoản' : 'Mở khóa tài khoản'">
                   <i class="bi" :class="reader.trangThai ? 'bi-lock-fill' : 'bi-unlock-fill'"></i>
                 </button>
-                <!-- Nút Xóa -->
                 <button class="btn btn-sm btn-outline-danger" @click="deleteReader(reader._id)" title="Xóa độc giả">
                   <i class="bi bi-trash3"></i>
                 </button>
@@ -69,6 +67,51 @@
       </div>
     </div>
 
+    <div class="modal fade" id="editReaderModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 rounded-4 shadow">
+                <div class="modal-header border-bottom-0 pb-0">
+                    <h5 class="modal-title fw-bold text-dark">Sửa Thông Tin Độc Giả</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form @submit.prevent="updateReader" class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Họ lót</label>
+                            <input type="text" class="form-control bg-light" v-model="editForm.hoLot" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Tên</label>
+                            <input type="text" class="form-control bg-light" v-model="editForm.ten" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Số điện thoại</label>
+                            <input type="text" class="form-control bg-light" v-model="editForm.dienThoai">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Giới tính</label>
+                            <select class="form-select bg-light" v-model="editForm.phai">
+                                <option value="Nam">Nam</option>
+                                <option value="Nữ">Nữ</option>
+                                <option value="Khác">Khác</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Địa chỉ</label>
+                            <input type="text" class="form-control bg-light" v-model="editForm.diaChi">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer border-top-0 pt-0">
+                    <button type="button" class="btn btn-light fw-semibold" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-primary fw-bold px-4" @click="updateReader" :disabled="isSaving">
+                        <span v-if="isSaving" class="spinner-border spinner-border-sm me-2"></span> Lưu Thay Đổi
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
   </div>
 </template>
 
@@ -76,10 +119,16 @@
 import { ref, computed, onMounted } from 'vue';
 import api from '../../services/api';
 import Swal from 'sweetalert2';
+import { Modal } from 'bootstrap';
 
 const readers = ref([]);
 const searchQuery = ref('');
 const isLoading = ref(true);
+
+// State cho Modal Sửa
+const editForm = ref({});
+const isSaving = ref(false);
+let editModalInstance = null;
 
 // Lọc Client-side theo Tên hoặc SĐT
 const filteredReaders = computed(() => {
@@ -97,6 +146,33 @@ const fetchReaders = async () => {
         readers.value = res.data;
     } catch (error) { console.error(error); }
     finally { isLoading.value = false; }
+};
+
+// Mở Modal Sửa
+const openEditModal = (reader) => {
+    // Copy dữ liệu sang form để không làm thay đổi trực tiếp trên bảng khi chưa bấm Lưu
+    editForm.value = { ...reader };
+    
+    const modalElement = document.getElementById('editReaderModal');
+    if (!editModalInstance && modalElement) {
+        editModalInstance = new Modal(modalElement);
+    }
+    if (editModalInstance) editModalInstance.show();
+};
+
+// Cập nhật thông tin
+const updateReader = async () => {
+    isSaving.value = true;
+    try {
+        await api.put(`/readers/${editForm.value._id}`, editForm.value);
+        Swal.fire('Thành công', 'Đã cập nhật thông tin độc giả!', 'success');
+        editModalInstance.hide();
+        fetchReaders(); // Tải lại bảng
+    } catch (error) {
+        Swal.fire('Lỗi', 'Không thể cập nhật thông tin', 'error');
+    } finally {
+        isSaving.value = false;
+    }
 };
 
 // Đảo trạng thái Khóa / Mở

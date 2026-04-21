@@ -9,7 +9,8 @@ const docGiaSchema = new mongoose.Schema({
     dienThoai: { type: String, required: true, unique: true }, // Dùng SĐT làm tài khoản đăng nhập
     password: { type: String, required: true },
     diemUyTin: { type: Number, default: 100 }, // Điểm uy tín, trừ khi trả trễ, cộng khi trả đúng hạn
-    trangThai: { type: Boolean, default: true } // true = Hoạt động, false = Bị khóa (không cho mượn)
+    trangThai: { type: Boolean, default: true }, // true = Hoạt động, false = Bị khóa (không cho mượn)
+    avatar: { type: String, default: "" }, // Thêm trường lưu ảnh đại diện
 }, { timestamps: true });
 
 module.exports = mongoose.model('DocGia', docGiaSchema);

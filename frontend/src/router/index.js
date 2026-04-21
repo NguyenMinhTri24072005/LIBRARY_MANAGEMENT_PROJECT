@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import { useAuthStore } from '../store/auth.store';
+import Profile from '../views/Profile.vue';
 
 const routes = [
     {
@@ -19,6 +20,12 @@ const routes = [
         name: 'Home',
         component: () => import('../views/user/BooksCatalog.vue'),
         meta: { requiresAuth: true, role: 'user' }
+    },
+    {
+        path: '/profile',
+        name: 'Profile',
+        component: Profile,
+        meta: { requiresAuth: true } // Yêu cầu đăng nhập
     },
     {
         path: '/',
