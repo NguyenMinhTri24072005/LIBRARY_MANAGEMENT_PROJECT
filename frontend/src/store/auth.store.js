@@ -12,24 +12,23 @@ export const useAuthStore = defineStore('auth', {
         isUser: (state) => state.user?.role === 'user',
     },
     actions: {
+        // Tìm đến action login trong auth.store.js và sửa lại như sau:
         async login(credentials) {
             try {
                 const response = await api.post('/auth/login', credentials);
 
-                // SỬA LỖI TẠI ĐÂY: Trích xuất từ response.data.data
-                const loginData = response.data.data;
+                // Backend trả về { success: true, data: { token, user } }
+                // Nên phải lấy response.data.data
+                const result = response.data.data;
 
-                this.token = loginData.token;
-                this.user = loginData.user;
+                this.token = result.token;
+                this.user = result.user;
 
-                // Lưu vào localStorage
                 localStorage.setItem('token', this.token);
                 localStorage.setItem('user', JSON.stringify(this.user));
 
-                // Thiết lập header cho các request sau
                 api.defaults.headers.common['Authorization'] = `Bearer ${this.token}`;
-
-                return loginData;
+                return result;
             } catch (error) {
                 this.logout();
                 throw error;
@@ -37,13 +36,17 @@ export const useAuthStore = defineStore('auth', {
         },
         // Gọi API để lấy thông tin mới nhất của User (Cập nhật điểm uy tín, trạng thái khóa...)
         async fetchCurrentUser() {
-            if (!this.token || this.user?.role === 'admin') return; // Chỉ cập nhật cho Độc giả
+            if (!this.token) return;
 
             try {
-                const res = await api.get('/readers/profile');
-                if (res.data) {
-                    // Giữ lại role 'user' và ghi đè các thông tin mới từ DB
-                    this.user = { ...res.data, role: 'user' };
+                const isAdmin = this.user?.chucVu === 'Thủ thư' || this.user?.chucVu === 'Admin' || this.user?.role === 'admin';
+                const endpoint = isAdmin ? '/auth/me' : '/readers/profile';
+                
+                const res = await api.get(endpoint);
+                const freshData = res.data?.data || res.data;
+                
+                if (freshData) {
+                    this.user = { ...this.user, ...freshData };
                 }
             } catch (error) {
                 console.error("Không thể cập nhật thông tin User", error);

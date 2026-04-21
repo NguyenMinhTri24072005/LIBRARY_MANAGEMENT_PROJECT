@@ -20,7 +20,7 @@ exports.register = async (req, res, next) => {
 exports.login = async (req, res, next) => {
     try {
         const { dienThoai, password, role } = req.body;
-        
+
         if (!dienThoai || !password || !role) {
             return res.status(400).json({
                 success: false,
@@ -29,11 +29,14 @@ exports.login = async (req, res, next) => {
         }
 
         const result = await authService.login(dienThoai, password, role);
-        
+
         return res.status(200).json({
             success: true,
             message: 'Đăng nhập thành công!',
-            data: result
+            data: {
+                token: result.token,   // ✅ lấy từ result
+                user: result.user      // ✅ lấy từ result
+            }
         });
     } catch (error) {
         return next(error);
@@ -54,7 +57,7 @@ exports.getMe = async (req, res, next) => {
 
         if (!userData) {
             console.log(id)
-            return next(new ApiError(404, "Không tìm thấy người dùng"));
+            return next(new ApiError(401, "Tài khoản không còn tồn tại. Vui lòng đăng nhập lại."));
         }
 
         return res.status(200).json({
@@ -72,7 +75,7 @@ exports.updateMe = async (req, res, next) => {
     try {
         const { id, role } = req.user;
         const updateData = { ...req.body };
-        
+
         // Không cho phép tự đổi password/role/uy tín qua API này
         delete updateData.password;
         delete updateData.role;
@@ -112,7 +115,7 @@ exports.changePassword = async (req, res, next) => {
             user = await DocGia.findById(id);
         }
 
-        if (!user) return next(new ApiError(404, "Không tìm thấy người dùng."));
+        if (!user) return next(new ApiError(401, "Tài khoản không còn tồn tại. Vui lòng đăng nhập lại."));
 
         // 2. Kiểm tra mật khẩu cũ
         const isMatch = await bcrypt.compare(oldPassword, user.password);

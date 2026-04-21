@@ -6,7 +6,7 @@ const nhanVienSchema = new mongoose.Schema({
     chucVu: { type: String, default: 'Thủ thư' },
     diaChi: { type: String },
     soDienThoai: { type: String, required: true, unique: true }, // Dùng SĐT làm tài khoản đăng nhập
-    avatar: { type: String, default: "" }, // Thêm trường lưu ảnh đại diện
+    hinhAnh: { type: String, default: "" }, // Thêm trường lưu ảnh đại diện
 }, { timestamps: true });
 
 module.exports = mongoose.model('NhanVien', nhanVienSchema);

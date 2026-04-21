@@ -91,7 +91,11 @@ const isLoading = ref(false);
 const handleLogin = async () => {
     isLoading.value = true;
     try {
-        await authStore.login(formData.value);
+        await authStore.login({
+            dienThoai: dienThoai.value,
+            password: password.value,
+            role: role.value
+        });
         
         // Sau khi await login thành công, authStore.user đã có dữ liệu
         if (authStore.isAdmin) {

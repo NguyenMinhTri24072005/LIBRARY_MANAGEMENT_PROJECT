@@ -103,25 +103,19 @@ const router = createRouter({
     routes,
 });
 
-router.beforeEach(async (to, from, next) => {
+router.beforeEach((to, from, next) => {
     const authStore = useAuthStore();
     const isAuthenticated = !!authStore.token;
-    const isAdmin = authStore.user?.role === 'Admin' || authStore.user?.chucVu === 'Admin' || authStore.user?.chucVu === 'Thủ thư';
+    
+    // Kiểm tra chức vụ: Thủ thư hoặc Admin đều được vào trang quản trị
+    const isAdmin = authStore.user?.chucVu === 'Thủ thư' || authStore.user?.chucVu === 'Admin';
 
-    // Nếu trang yêu cầu đăng nhập mà chưa có token
     if (to.meta.requiresAuth && !isAuthenticated) {
         return next('/login');
     }
 
-    // Nếu trang yêu cầu Admin mà không phải Admin
     if (to.meta.requiresAdmin && !isAdmin) {
-        // Nếu đã đăng nhập nhưng không đủ quyền, trả về trang chủ hoặc báo lỗi
-        return isAuthenticated ? next('/') : next('/login');
-    }
-
-    // Đăng nhập rồi mà vào lại trang Login thì đẩy ra trang chủ
-    if (to.path === '/login' && isAuthenticated) {
-        return next(isAdmin ? '/admin' : '/');
+        return next('/');
     }
 
     next();
