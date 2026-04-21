@@ -189,10 +189,11 @@ const formData = ref({
 
 // Format tiền
 const formatCurrency = (val) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(val);
+const defaultImage = 'data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2250%22%20height%3D%2270%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20fill%3D%22%23e2e8f0%22%2F%3E%3Ctext%20x%3D%2250%25%22%20y%3D%2250%25%22%20font-family%3D%22sans-serif%22%20font-size%3D%2210%22%20fill%3D%22%2364748b%22%20text-anchor%3D%22middle%22%20dy%3D%22.3em%22%3ENo%20Image%3C%2Ftext%3E%3C%2Fsvg%3E';
 
 // Hàm lấy đường dẫn ảnh an toàn
 const getImageUrl = (path) => {
-    if (!path) return 'https://via.placeholder.com/50x70?text=No+Image';
+    if (!path) return defaultImage;
     // Nếu path đã có http (link ngoài) thì giữ nguyên, ngược lại nối với backend url
     if (path.startsWith('http')) return path;
     return `http://localhost:3000${path}`;
@@ -200,9 +201,9 @@ const getImageUrl = (path) => {
 
 // Hàm xử lý khi ảnh bị lỗi (404)
 const handleImageError = (e) => {
-    e.target.src = 'https://via.placeholder.com/50x70?text=No+Image';
+    e.target.onerror = null; // QUAN TRỌNG: Ngắt sự kiện onError để tránh lặp vô tận
+    e.target.src = defaultImage;
 };
-
 // Lấy dữ liệu
 const fetchBooks = async () => {
     try {

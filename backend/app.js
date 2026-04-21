@@ -11,7 +11,7 @@ app.use(express.json()); // Phân tích các request có body định dạng JSO
 app.use(express.urlencoded({ extended: true })); // Phân tích form data
 
 // Cho phép truy cập thư mục ảnh công khai
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // --- 2. ĐỊNH NGHĨA ROUTES CHÍNH ---
 const authRoutes = require('./app/routes/auth.route');
