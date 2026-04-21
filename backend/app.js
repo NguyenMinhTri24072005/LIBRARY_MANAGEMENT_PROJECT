@@ -16,6 +16,9 @@ const nxbRoutes = require('./routes/nhaxuatban.route');
 const sachRoutes = require('./routes/sach.route'); 
 const uploadRoutes = require('./app/routes/upload.route'); 
 const docGiaRoutes = require('./app/routes/docgia.route'); 
+const phieuMuonRoutes = require('./app/routes/phieumuon.route');
+const caiDatRoutes = require('./app/routes/caidat.route'); 
+const thongKeRoutes = require('./app/routes/thongke.route'); 
 
 app.get('/', (req, res) => {
     res.status(200).json({
@@ -31,6 +34,9 @@ app.use('/api/publishers', nxbRoutes);  //(Route cho NXB)
 app.use('/api/books', sachRoutes);  //(Route cho Sách)
 app.use('/api/upload', uploadRoutes); 
 app.use('/api/readers', docGiaRoutes); 
+app.use('/api/borrows', phieuMuonRoutes);
+app.use('/api/settings', caiDatRoutes);
+app.use('/api/stats', thongKeRoutes);
 
 // --- 3. XỬ LÝ LỖI (ERROR HANDLING) ---
 
