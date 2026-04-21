@@ -28,6 +28,7 @@ class SachService {
             if (data.soQuyenHienTai < 0) {
                 throw new ApiError(400, 'Số lượng sách cập nhật không hợp lệ (Số quyển hiện tại bị âm)!');
             }
+            data.soQuyenHienTai = newSoQuyenHienTai;
         }
 
         return await Sach.findByIdAndUpdate(id, data, { new: true }).populate('maNXB', 'tenNXB');

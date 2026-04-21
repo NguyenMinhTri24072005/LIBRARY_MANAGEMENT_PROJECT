@@ -362,14 +362,15 @@ exports.delete = async (req, res, next) => {
     }
 };
 
+// Hàm cập nhật (SỬA LỖI TÊN BIẾN TẠI ĐÂY)
 exports.update = async (req, res, next) => {
     try {
         if (Object.keys(req.body).length === 0) {
             return next(new ApiError(400, "Dữ liệu cập nhật không được rỗng"));
         }
 
-        // Bây giờ biến docgiaService đã tồn tại và hàm update sẽ chạy được
-        const document = await docgiaService.update(req.params.id, req.body);
+        // Gọi biến docGiaService với chữ G hoa
+        const document = await docGiaService.update(req.params.id, req.body);
         
         if (!document) {
             return next(new ApiError(404, "Không tìm thấy độc giả"));

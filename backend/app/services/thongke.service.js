@@ -2,6 +2,23 @@ const { DocGia, Sach, PhieuMuon } = require('../models');
 const ExcelJS = require('exceljs');
 const ApiError = require('../api-error'); // THÊM DÒNG NÀY
 
+const chartData = await PhieuMuon.aggregate([
+            { $match: { ...matchDate, trangThai: { $ne: 'DA_HUY' } } },
+            { 
+                $group: { 
+                    _id: { 
+                        $dateToString: { 
+                            format: "%Y-%m-%d", 
+                            date: "$createdAt",
+                            timezone: "Asia/Ho_Chi_Minh" // THÊM DÒNG NÀY ĐỂ ÉP MÚI GIỜ VN
+                        } 
+                    }, 
+                    count: { $sum: 1 } 
+                } 
+            },
+            { $sort: { _id: 1 } }
+        ]);
+
 class ThongKeService {
     async getDashboardStats(query) {
         // ... giữ nguyên logic cũ của bạn ...
