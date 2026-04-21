@@ -8,25 +8,30 @@ export const useAuthStore = defineStore('auth', {
     }),
     getters: {
         isAuthenticated: (state) => !!state.token,
-        isAdmin: (state) => state.user?.role === 'admin',
+        isAdmin: (state) => state.user?.chucVu === 'Thủ thư' || state.user?.chucVu === 'Admin',
         isUser: (state) => state.user?.role === 'user',
     },
     actions: {
-        async login(dienThoai, password, role) {
+        async login(credentials) {
             try {
-                // api.post trả về toàn bộ cục JSON { success, message, data: { user, token } }
-                const response = await api.post('/auth/login', { dienThoai, password, role });
+                const response = await api.post('/auth/login', credentials);
 
-                // Trích xuất user và token từ response.data
-                const userData = response.data.user;
-                const tokenData = response.data.token;
+                // SỬA LỖI TẠI ĐÂY: Trích xuất từ response.data.data
+                const loginData = response.data.data;
 
-                // Gắn thêm trường role vào user để Vue Router nhận diện phân quyền
-                this.user = { ...userData, role: role };
-                this.token = tokenData;
+                this.token = loginData.token;
+                this.user = loginData.user;
 
-                return response;
+                // Lưu vào localStorage
+                localStorage.setItem('token', this.token);
+                localStorage.setItem('user', JSON.stringify(this.user));
+
+                // Thiết lập header cho các request sau
+                api.defaults.headers.common['Authorization'] = `Bearer ${this.token}`;
+
+                return loginData;
             } catch (error) {
+                this.logout();
                 throw error;
             }
         },

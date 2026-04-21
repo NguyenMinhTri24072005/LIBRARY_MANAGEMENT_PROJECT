@@ -11,11 +11,12 @@
             </button>
 
             <div class="collapse navbar-collapse" :class="{ 'show': isMobileMenuOpen }" id="navbarUser">
-                
+
 
                 <ul class="navbar-nav align-items-lg-center gap-2">
                     <li class="nav-item me-lg-2" @click="isMobileMenuOpen = false">
-                        <router-link to="/books" class="nav-link fw-bold text-dark d-flex align-items-center" active-class="text-primary">
+                        <router-link to="/books" class="nav-link fw-bold text-dark d-flex align-items-center"
+                            active-class="text-primary">
                             <i class="bi bi-collection me-1"></i> Tủ Sách
                         </router-link>
                     </li>
@@ -23,30 +24,42 @@
                     <li class="nav-item me-lg-2" v-if="!authStore.isAdmin" @click="isMobileMenuOpen = false">
                         <router-link to="/cart" class="nav-link position-relative d-flex align-items-center">
                             <i class="bi bi-cart3 fs-4 text-dark"></i>
-                            <span v-if="cartStore.totalItems > 0" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="margin-left: -5px; margin-top: 5px;">
+                            <span v-if="cartStore.totalItems > 0"
+                                class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                                style="margin-left: -5px; margin-top: 5px;">
                                 {{ cartStore.totalItems }}
                             </span>
                         </router-link>
                     </li>
 
                     <li class="nav-item dropdown user-dropdown" v-if="authStore.isAuthenticated">
-                        <a class="nav-link dropdown-toggle d-flex align-items-center gap-2 cursor-pointer" 
-                           @click.prevent="toggleDropdown" 
-                           role="button">
-                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width: 35px; height: 35px;">
-                                {{ userInitials }}
+                        <a class="nav-link dropdown-toggle d-flex align-items-center gap-2 cursor-pointer"
+                            @click.prevent="toggleDropdown" role="button">
+                            <div class="avatar-wrapper bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold shadow-sm"
+                                style="width: 35px; height: 35px;">
+                                <img v-if="authStore.user?.hinhAnh" :src="userAvatar"
+                                    class="rounded-circle object-fit-cover" style="width: 100%; height: 100%;"
+                                    @error="handleImageError" alt="Avatar">
+                                <span v-else>{{ userInitials }}</span>
                             </div>
-                            <span class="fw-semibold text-dark d-lg-none d-xl-inline">{{ authStore.user?.ten || authStore.user?.hoTenNV }}</span>
+                            <span class="fw-semibold text-dark d-lg-none d-xl-inline">{{ authStore.user?.ten ||
+                                authStore.user?.hoTenNV }}</span>
                         </a>
-                        
-                        <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2 rounded-3" :class="{ 'show': isDropdownOpen }">
+
+                        <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2 rounded-3"
+                            :class="{ 'show': isDropdownOpen }">
                             <li v-if="!authStore.isAdmin">
-                                <h6 class="dropdown-header text-primary fw-bold">Điểm uy tín: <i class="bi bi-star-fill text-warning"></i> {{ authStore.user?.diemUyTin || 100 }}</h6>
+                                <h6 class="dropdown-header text-primary fw-bold">Điểm uy tín: <i
+                                        class="bi bi-star-fill text-warning"></i> {{ authStore.user?.diemUyTin || 100 }}
+                                </h6>
                             </li>
-                            <li v-if="!authStore.isAdmin"><hr class="dropdown-divider"></li>
+                            <li v-if="!authStore.isAdmin">
+                                <hr class="dropdown-divider">
+                            </li>
 
                             <li @click="closeMenu">
-                                <router-link :to="authStore.isAdmin ? '/admin/profile' : '/profile'" class="dropdown-item py-2">
+                                <router-link :to="authStore.isAdmin ? '/admin/profile' : '/profile'"
+                                    class="dropdown-item py-2">
                                     <i class="bi bi-person-vcard me-2 text-primary"></i>Hồ sơ cá nhân
                                 </router-link>
                             </li>
@@ -63,7 +76,9 @@
                                 </router-link>
                             </li>
 
-                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
                             <li @click="closeMenu">
                                 <button @click="handleLogout" class="dropdown-item py-2 text-danger fw-semibold">
                                     <i class="bi bi-box-arrow-right me-2"></i>Đăng xuất
@@ -72,7 +87,8 @@
                         </ul>
                     </li>
                     <li class="nav-item" v-else @click="isMobileMenuOpen = false">
-                        <router-link to="/login" class="btn btn-outline-primary fw-bold px-4 rounded-pill">Đăng nhập</router-link>
+                        <router-link to="/login" class="btn btn-outline-primary fw-bold px-4 rounded-pill">Đăng
+                            nhập</router-link>
                     </li>
                 </ul>
             </div>
@@ -130,6 +146,19 @@ const userInitials = computed(() => {
     return words[words.length - 1].charAt(0).toUpperCase();
 });
 
+// Logic xử lý đường dẫn ảnh Avatar
+const userAvatar = computed(() => {
+    const path = authStore.user?.hinhAnh;
+    if (!path) return '';
+    if (path.startsWith('http')) return path;
+    return `http://localhost:3000${path}`;
+});
+
+// Xóa ảnh nếu có lỗi load (để fallback về chữ cái)
+const handleImageError = (e) => {
+    e.target.style.display = 'none';
+};
+
 const handleLogout = () => {
     Swal.fire({
         title: 'Đăng xuất?',
@@ -141,7 +170,7 @@ const handleLogout = () => {
     }).then((result) => {
         if (result.isConfirmed) {
             authStore.logout();
-            cartStore.clearCart(); 
+            cartStore.clearCart();
             router.push('/login');
         }
     });
@@ -149,12 +178,31 @@ const handleLogout = () => {
 </script>
 
 <style scoped>
-.cursor-pointer { cursor: pointer; }
-.text-primary { color: var(--accent) !important; }
-.bg-primary { background-color: var(--accent) !important; }
-.border-primary { border-color: var(--accent) !important; }
-.btn-primary { background-color: var(--accent); border-color: var(--accent); }
-.btn-primary:hover { background-color: #902be6; border-color: #902be6; }
+.cursor-pointer {
+    cursor: pointer;
+}
+
+.text-primary {
+    color: var(--accent) !important;
+}
+
+.bg-primary {
+    background-color: var(--accent) !important;
+}
+
+.border-primary {
+    border-color: var(--accent) !important;
+}
+
+.btn-primary {
+    background-color: var(--accent);
+    border-color: var(--accent);
+}
+
+.btn-primary:hover {
+    background-color: #902be6;
+    border-color: #902be6;
+}
 
 /* Thêm transition nhẹ nhàng khi dropdown xổ xuống */
 .dropdown-menu {
@@ -164,9 +212,18 @@ const handleLogout = () => {
     transform: translateY(10px);
     transition: all 0.2s ease;
 }
+
 .dropdown-menu.show {
     visibility: visible;
     opacity: 1;
     transform: translateY(0);
+}
+
+.avatar-wrapper {
+    overflow: hidden;
+}
+
+.object-fit-cover {
+    object-fit: cover;
 }
 </style>

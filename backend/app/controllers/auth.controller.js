@@ -53,6 +53,7 @@ exports.getMe = async (req, res, next) => {
         }
 
         if (!userData) {
+            console.log(id)
             return next(new ApiError(404, "Không tìm thấy người dùng"));
         }
 

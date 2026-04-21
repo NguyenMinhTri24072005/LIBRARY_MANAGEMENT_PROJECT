@@ -9,20 +9,22 @@
             <div class="col-lg-4">
                 <div class="card border-0 shadow-sm rounded-4 text-center p-4">
                     <div class="position-relative d-inline-block mx-auto mb-3">
-                        <img :src="avatarPreview || getImageUrl(user.avatar)" 
-                             class="rounded-circle object-fit-cover border border-3 border-primary shadow-sm" 
-                             style="width: 150px; height: 150px; background-color: #f8f9fa;"
-                             @error="handleImageError">
-                        
-                        <label for="avatarUpload" class="position-absolute bottom-0 end-0 bg-primary text-white rounded-circle p-2 shadow cursor-pointer" style="cursor: pointer; transition: 0.2s;" title="Đổi ảnh đại diện">
+                        <img :src="avatarPreview || getImageUrl(user.hinhAnh)"
+                            class="rounded-circle object-fit-cover border border-3 border-primary shadow-sm"
+                            style="width: 150px; height: 150px; background-color: #f8f9fa;" @error="handleImageError">
+
+                        <label for="avatarUpload"
+                            class="position-absolute bottom-0 end-0 bg-primary text-white rounded-circle p-2 shadow cursor-pointer"
+                            style="cursor: pointer; transition: 0.2s;" title="Đổi ảnh đại diện">
                             <i class="bi bi-camera-fill"></i>
                         </label>
                         <input type="file" id="avatarUpload" class="d-none" accept="image/*" @change="handleFileUpload">
                     </div>
 
                     <h4 class="fw-bold mb-1">{{ user.hoLot }} {{ user.ten }} {{ user.hoTenNV }}</h4>
-                    <p class="text-muted mb-3"><i class="bi bi-telephone-fill me-2"></i>{{ user.dienThoai || user.soDienThoai }}</p>
-                    
+                    <p class="text-muted mb-3"><i class="bi bi-telephone-fill me-2"></i>{{ user.dienThoai ||
+                        user.soDienThoai }}</p>
+
                     <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill fw-semibold mb-3">
                         {{ authStore.isAdmin ? 'Quản trị viên' : 'Thành viên Thư Viện' }}
                     </span>
@@ -30,14 +32,16 @@
                     <div v-if="!authStore.isAdmin" class="bg-light rounded-3 p-3 text-start mt-2 border">
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <span class="text-muted fw-semibold">Điểm uy tín:</span>
-                            <span class="badge rounded-pill fs-6" :class="user.diemUyTin >= 50 ? 'bg-success' : 'bg-danger'">
+                            <span class="badge rounded-pill fs-6"
+                                :class="user.diemUyTin >= 50 ? 'bg-success' : 'bg-danger'">
                                 <i class="bi bi-star-fill me-1"></i>{{ user.diemUyTin }}
                             </span>
                         </div>
                         <div class="progress" style="height: 6px;">
                             <div class="progress-bar bg-success" :style="{ width: user.diemUyTin + '%' }"></div>
                         </div>
-                        <small class="text-muted mt-2 d-block" style="font-size: 0.8rem;">Điểm uy tín quyết định số lượng sách bạn được mượn.</small>
+                        <small class="text-muted mt-2 d-block" style="font-size: 0.8rem;">Điểm uy tín quyết định số
+                            lượng sách bạn được mượn.</small>
                     </div>
                 </div>
             </div>
@@ -47,14 +51,16 @@
                     <div class="card-header bg-white border-bottom-0 pt-4 pb-0 px-4">
                         <ul class="nav nav-tabs nav-tabs-custom border-bottom-0" role="tablist">
                             <li class="nav-item">
-                                <button class="nav-link active fw-bold px-4" data-bs-toggle="tab" data-bs-target="#info-tab" type="button">Thông tin cá nhân</button>
+                                <button class="nav-link active fw-bold px-4" data-bs-toggle="tab"
+                                    data-bs-target="#info-tab" type="button">Thông tin cá nhân</button>
                             </li>
                             <li class="nav-item">
-                                <button class="nav-link fw-bold px-4 text-muted" data-bs-toggle="tab" data-bs-target="#password-tab" type="button">Đổi mật khẩu</button>
+                                <button class="nav-link fw-bold px-4 text-muted" data-bs-toggle="tab"
+                                    data-bs-target="#password-tab" type="button">Đổi mật khẩu</button>
                             </li>
                         </ul>
                     </div>
-                    
+
                     <div class="card-body p-4">
                         <div class="tab-content">
                             <div class="tab-pane fade show active" id="info-tab">
@@ -62,24 +68,29 @@
                                     <div class="row g-3">
                                         <div class="col-md-6" v-if="!authStore.isAdmin">
                                             <label class="form-label fw-semibold">Họ lót</label>
-                                            <input type="text" class="form-control bg-light" v-model="user.hoLot" required>
+                                            <input type="text" class="form-control bg-light" v-model="user.hoLot"
+                                                required>
                                         </div>
                                         <div class="col-md-6" v-if="!authStore.isAdmin">
                                             <label class="form-label fw-semibold">Tên</label>
-                                            <input type="text" class="form-control bg-light" v-model="user.ten" required>
+                                            <input type="text" class="form-control bg-light" v-model="user.ten"
+                                                required>
                                         </div>
-                                        
+
                                         <div class="col-md-12" v-if="authStore.isAdmin">
                                             <label class="form-label fw-semibold">Họ và Tên</label>
-                                            <input type="text" class="form-control bg-light" v-model="user.hoTenNV" required>
+                                            <input type="text" class="form-control bg-light" v-model="user.hoTenNV"
+                                                required>
                                         </div>
 
                                         <div class="col-md-6">
                                             <label class="form-label fw-semibold">Số điện thoại</label>
-                                            <input v-if="!authStore.isAdmin" type="tel" class="form-control bg-light" v-model="user.dienThoai" readonly title="Không thể đổi SĐT">
-                                            <input v-else type="tel" class="form-control bg-light" v-model="user.soDienThoai" pattern="[0-9]{10,11}">
+                                            <input v-if="!authStore.isAdmin" type="tel" class="form-control bg-light"
+                                                v-model="user.dienThoai" readonly title="Không thể đổi SĐT">
+                                            <input v-else type="tel" class="form-control bg-light"
+                                                v-model="user.soDienThoai" pattern="[0-9]{10,11}">
                                         </div>
-                                        
+
                                         <div class="col-md-6" v-if="!authStore.isAdmin">
                                             <label class="form-label fw-semibold">Giới tính</label>
                                             <select class="form-select bg-light" v-model="user.phai">
@@ -91,7 +102,8 @@
 
                                         <div class="col-md-6" v-if="!authStore.isAdmin">
                                             <label class="form-label fw-semibold">Ngày sinh</label>
-                                            <input type="date" class="form-control bg-light" v-model="formattedNgaySinh">
+                                            <input type="date" class="form-control bg-light"
+                                                v-model="formattedNgaySinh">
                                         </div>
 
                                         <div class="col-12">
@@ -100,8 +112,10 @@
                                         </div>
                                     </div>
                                     <div class="mt-4 text-end">
-                                        <button type="submit" class="btn btn-primary px-4 fw-bold shadow-sm" :disabled="isSavingProfile">
-                                            <span v-if="isSavingProfile" class="spinner-border spinner-border-sm me-2"></span>
+                                        <button type="submit" class="btn btn-primary px-4 fw-bold shadow-sm"
+                                            :disabled="isSavingProfile">
+                                            <span v-if="isSavingProfile"
+                                                class="spinner-border spinner-border-sm me-2"></span>
                                             Lưu Thông Tin
                                         </button>
                                     </div>
@@ -112,21 +126,29 @@
                                 <form @submit.prevent="changePassword">
                                     <div class="row g-3">
                                         <div class="col-12">
-                                            <label class="form-label fw-semibold">Mật khẩu hiện tại <span class="text-danger">*</span></label>
-                                            <input type="password" class="form-control bg-light" v-model="pwdForm.oldPassword" required>
+                                            <label class="form-label fw-semibold">Mật khẩu hiện tại <span
+                                                    class="text-danger">*</span></label>
+                                            <input type="password" class="form-control bg-light"
+                                                v-model="pwdForm.oldPassword" required>
                                         </div>
                                         <div class="col-md-6">
-                                            <label class="form-label fw-semibold">Mật khẩu mới <span class="text-danger">*</span></label>
-                                            <input type="password" class="form-control bg-light" v-model="pwdForm.newPassword" required minlength="6">
+                                            <label class="form-label fw-semibold">Mật khẩu mới <span
+                                                    class="text-danger">*</span></label>
+                                            <input type="password" class="form-control bg-light"
+                                                v-model="pwdForm.newPassword" required minlength="6">
                                         </div>
                                         <div class="col-md-6">
-                                            <label class="form-label fw-semibold">Xác nhận mật khẩu mới <span class="text-danger">*</span></label>
-                                            <input type="password" class="form-control bg-light" v-model="pwdForm.confirmPassword" required minlength="6">
+                                            <label class="form-label fw-semibold">Xác nhận mật khẩu mới <span
+                                                    class="text-danger">*</span></label>
+                                            <input type="password" class="form-control bg-light"
+                                                v-model="pwdForm.confirmPassword" required minlength="6">
                                         </div>
                                     </div>
                                     <div class="mt-4 text-end">
-                                        <button type="submit" class="btn btn-warning text-dark px-4 fw-bold shadow-sm" :disabled="isSavingPwd">
-                                            <span v-if="isSavingPwd" class="spinner-border spinner-border-sm me-2"></span>
+                                        <button type="submit" class="btn btn-warning text-dark px-4 fw-bold shadow-sm"
+                                            :disabled="isSavingPwd">
+                                            <span v-if="isSavingPwd"
+                                                class="spinner-border spinner-border-sm me-2"></span>
                                             Cập Nhật Mật Khẩu
                                         </button>
                                     </div>
@@ -166,12 +188,12 @@ const user = ref({
     phai: 'Nam',
     diaChi: '',
     ngaySinh: '',
-    avatar: '',
+    hinhAnh: '', // Đồng bộ tên trường hinhAnh với Model và Header
     diemUyTin: 100
 });
 
 const isLoadingProfile = ref(true);
-const hasError = ref(false); // Biến cờ mới để kiểm soát lỗi
+const hasError = ref(false);
 const isSavingProfile = ref(false);
 const isSavingPwd = ref(false);
 
@@ -196,38 +218,60 @@ const handleImageError = (e) => {
     e.target.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.value.ten || user.value.hoTenNV || 'U') + '&background=764ba2&color=fff&size=150';
 };
 
-// Computed property an toàn
+// Computed property an toàn cho ngày sinh
 const formattedNgaySinh = computed({
     get() {
         if (!user.value.ngaySinh) return '';
-        return new Date(user.value.ngaySinh).toISOString().split('T')[0];
+        try {
+            return new Date(user.value.ngaySinh).toISOString().split('T')[0];
+        } catch (e) {
+            return '';
+        }
     },
     set(newValue) {
         user.value.ngaySinh = newValue;
     }
 });
 
-// Lấy thông tin profile
+// Trong Profile.vue, sửa lại hàm fetchProfile một chút:
 const fetchProfile = async () => {
     isLoadingProfile.value = true;
     hasError.value = false;
     try {
-        // 1. Lấy dữ liệu tạm từ Store nạp vào ngay lập tức để chắc chắn có Form
+        // Ưu tiên dùng dữ liệu Store để hiện giao diện ngay
         if (authStore.user) {
             user.value = { ...user.value, ...authStore.user };
         }
 
-        // 2. Gọi API lấy dữ liệu mới nhất
-        const res = await api.get('/auth/me');
-        
-        // 3. Linh hoạt hứng dữ liệu dù Backend trả về dưới dạng res.data.data hay res.data.user
-        const freshData = res.data?.data || res.data?.user || res.data;
+        let endpoint = '';
+        if (authStore.isAdmin) {
+            console.log("là admin")
+            endpoint = '/auth/me';
+        } else {
+            console.log("là user")
+            // Đảm bảo Backend đã chỉnh docgia.route.js như Bước 1
+            endpoint = '/readers/profile';
+        }
+
+        const res = await api.get(endpoint);
+        const freshData = res.data?.data || res.data;
+
         if (freshData) {
-            user.value = { ...user.value, ...freshData };
+            console.log('vôp nè')
+            // Map dữ liệu linh hoạt giữa Nhân viên và Độc giả
+            user.value = {
+                ...user.value,
+                ...freshData,
+                // Đồng bộ trường ảnh
+                hinhAnh: freshData.hinhAnh || freshData.avatar || ''
+            };
         }
     } catch (error) {
         console.error("Lỗi lấy thông tin:", error);
-        hasError.value = true; // Chỉ khi sập mạng/lỗi 404, 500 thì mới bật cờ lỗi
+        // Nếu lỗi 404 nhưng vẫn có data trong Store thì không hiện màn hình lỗi
+        if (!authStore.user) {
+            hasError.value = true;
+        }
     } finally {
         isLoadingProfile.value = false;
     }
@@ -240,21 +284,27 @@ const handleFileUpload = async (event) => {
 
     avatarFile.value = file;
     avatarPreview.value = URL.createObjectURL(file);
-    
+
     try {
         const formDataUpload = new FormData();
         formDataUpload.append('image', file);
-        
+
         const uploadRes = await api.post('/upload', formDataUpload, {
             headers: { 'Content-Type': 'multipart/form-data' }
         });
-        
-        user.value.avatar = uploadRes.data.imageUrl;
-        await api.put('/auth/profile', { avatar: user.value.avatar });
-        
-        authStore.fetchCurrentUser();
+
+        // Cập nhật tên trường hinhAnh
+        const imageUrl = uploadRes.data.data?.imageUrl || uploadRes.data.imageUrl;
+        user.value.hinhAnh = imageUrl;
+
+        // SỬA LỖI TẠI ĐÂY: Gọi đúng API update profile tùy vai trò
+        const updateEndpoint = authStore.isAdmin ? '/auth/profile' : '/readers/profile';
+        await api.put(updateEndpoint, { hinhAnh: imageUrl });
+
+        await authStore.fetchCurrentUser();
         Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Đã cập nhật ảnh đại diện', showConfirmButton: false, timer: 2000 });
     } catch (error) {
+        console.error("Lỗi upload avatar:", error);
         Swal.fire('Lỗi', 'Không thể tải ảnh lên', 'error');
     }
 };
@@ -262,10 +312,17 @@ const handleFileUpload = async (event) => {
 const updateProfile = async () => {
     isSavingProfile.value = true;
     try {
-        await api.put('/auth/profile', user.value);
-        authStore.fetchCurrentUser(); 
+        // SỬA LỖI TẠI ĐÂY: Gọi đúng API update profile tùy vai trò
+        const updateEndpoint = authStore.isAdmin ? '/auth/profile' : '/readers/profile';
+
+        // Loại bỏ các trường không cho phép sửa hoặc của hệ thống
+        const { _id, dienThoai, diemUyTin, password, ...updateData } = user.value;
+
+        await api.put(updateEndpoint, updateData);
+        await authStore.fetchCurrentUser();
         Swal.fire('Thành công', 'Đã cập nhật thông tin cá nhân!', 'success');
     } catch (error) {
+        console.error("Lỗi cập nhật profile:", error);
         Swal.fire('Lỗi', 'Có lỗi xảy ra khi lưu thông tin', 'error');
     } finally {
         isSavingProfile.value = false;
@@ -276,18 +333,18 @@ const changePassword = async () => {
     if (pwdForm.value.newPassword !== pwdForm.value.confirmPassword) {
         return Swal.fire('Lỗi', 'Mật khẩu xác nhận không khớp!', 'warning');
     }
-    
+
     isSavingPwd.value = true;
     try {
         await api.put('/auth/password', {
             oldPassword: pwdForm.value.oldPassword,
             newPassword: pwdForm.value.newPassword
         });
-        
+
         Swal.fire('Thành công', 'Đổi mật khẩu thành công. Lần đăng nhập sau hãy dùng mật khẩu mới!', 'success');
-        pwdForm.value = { oldPassword: '', newPassword: '', confirmPassword: '' }; 
+        pwdForm.value = { oldPassword: '', newPassword: '', confirmPassword: '' };
     } catch (error) {
-        // Axios interceptor tự bắt lỗi
+        console.error("Lỗi đổi mật khẩu:", error);
     } finally {
         isSavingPwd.value = false;
     }
@@ -305,12 +362,22 @@ onMounted(() => {
     border-bottom: 3px solid transparent;
     padding-bottom: 12px;
 }
+
 .nav-tabs-custom .nav-link.active {
     color: var(--accent);
     background-color: transparent;
     border-bottom: 3px solid var(--accent);
 }
+
 .nav-tabs-custom .nav-link:hover {
     color: var(--accent);
+}
+
+.object-fit-cover {
+    object-fit: cover;
+}
+
+.cursor-pointer {
+    cursor: pointer;
 }
 </style>

@@ -45,11 +45,11 @@ const routes = [
                 name: 'History',
                 component: () => import('../views/user/History.vue'), // <--- ĐÃ SỬA
             },
-            { 
-                path: 'profile', 
-                name: 'UserProfile', 
-                component: Profile, 
-                meta: { requiresAuth: true } 
+            {
+                path: 'profile',
+                name: 'UserProfile',
+                component: Profile,
+                meta: { requiresAuth: true }
             }
         ]
     },
@@ -89,10 +89,10 @@ const routes = [
                 name: 'AdminBorrows',
                 component: () => import('../views/admin/Borrows.vue'),
             },
-            { 
-                path: 'profile', 
-                name: 'AdminProfile', 
-                component: Profile 
+            {
+                path: 'profile',
+                name: 'AdminProfile',
+                component: Profile
             }
         ]
     }
@@ -103,28 +103,27 @@ const router = createRouter({
     routes,
 });
 
-router.beforeEach((to, from) => {
+router.beforeEach(async (to, from, next) => {
     const authStore = useAuthStore();
-    const isAuthenticated = authStore.isAuthenticated;
-    const isAdmin = authStore.isAdmin;
+    const isAuthenticated = !!authStore.token;
+    const isAdmin = authStore.user?.role === 'Admin' || authStore.user?.chucVu === 'Admin' || authStore.user?.chucVu === 'Thủ thư';
 
-    // 1. Nếu đã đăng nhập mà cố vào trang Login -> Đẩy về trang chủ tương ứng
-    if (to.meta.requiresGuest && isAuthenticated) {
-        return isAdmin ? '/admin' : '/';
-    }
-
-    // 2. Chặn người chưa đăng nhập vào trang yêu cầu Auth
+    // Nếu trang yêu cầu đăng nhập mà chưa có token
     if (to.meta.requiresAuth && !isAuthenticated) {
-        return '/login';
+        return next('/login');
     }
 
-    // 3. Chặn Độc giả (user) vào trang Admin
-    if (to.meta.role === 'admin' && !isAdmin) {
-        return '/';
+    // Nếu trang yêu cầu Admin mà không phải Admin
+    if (to.meta.requiresAdmin && !isAdmin) {
+        // Nếu đã đăng nhập nhưng không đủ quyền, trả về trang chủ hoặc báo lỗi
+        return isAuthenticated ? next('/') : next('/login');
     }
 
-    // Nếu hợp lệ, tự động cho qua
-    return true;
+    // Đăng nhập rồi mà vào lại trang Login thì đẩy ra trang chủ
+    if (to.path === '/login' && isAuthenticated) {
+        return next(isAdmin ? '/admin' : '/');
+    }
+
+    next();
 });
-
 export default router;

@@ -91,24 +91,25 @@ const isLoading = ref(false);
 const handleLogin = async () => {
     isLoading.value = true;
     try {
-        await authStore.login(dienThoai.value, password.value, role.value);
-
-        Swal.fire({
-            icon: 'success',
-            title: 'Xin chào!',
-            text: 'Đăng nhập thành công',
-            timer: 1500,
-            showConfirmButton: false
-        });
-
-        // Router Guard sẽ tự động kiểm tra và cho phép đi qua
-        if (role.value === 'admin') {
+        await authStore.login(formData.value);
+        
+        // Sau khi await login thành công, authStore.user đã có dữ liệu
+        if (authStore.isAdmin) {
             router.push('/admin');
         } else {
             router.push('/');
         }
+        
+        Swal.fire({
+            icon: 'success',
+            title: 'Đăng nhập thành công',
+            timer: 1500,
+            showConfirmButton: false
+        });
     } catch (error) {
-        console.error("Login failed");
+        // Hiển thị lỗi ra màn hình để biết tại sao thất bại
+        const errorMsg = error.response?.data?.message || 'Số điện thoại hoặc mật khẩu không đúng';
+        Swal.fire('Thất bại', errorMsg, 'error');
     } finally {
         isLoading.value = false;
     }

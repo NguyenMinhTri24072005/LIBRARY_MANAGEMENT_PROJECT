@@ -16,6 +16,7 @@ router.get('/profile', (req, res, next) => {
 
 // Cập nhật hồ sơ của chính mình
 router.put('/profile', docGiaController.updateProfile);
+router.get('/profile', docGiaController.findOne); // Lấy profile cá nhân
 
 
 // --- Tuyến đường cho Admin ---
