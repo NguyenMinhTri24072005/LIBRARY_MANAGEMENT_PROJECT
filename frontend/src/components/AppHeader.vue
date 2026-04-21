@@ -13,7 +13,7 @@
             <div class="collapse navbar-collapse" :class="{ 'show': isMobileMenuOpen }" id="navbarUser">
 
 
-                <ul class="navbar-nav align-items-lg-center gap-2">
+                <ul class="navbar-nav ms-auto align-items-lg-center gap-4">
                     <li class="nav-item me-lg-2" @click="isMobileMenuOpen = false">
                         <router-link to="/books" class="nav-link fw-bold text-dark d-flex align-items-center"
                             active-class="text-primary">

@@ -9,7 +9,7 @@ class ThongKeService {
         
         // Xử lý lọc theo ngày
         if (query.fromDate && query.toDate) {
-            matchDate.createdAt = {
+            matchDate.ngayMuon = {
                 $gte: new Date(query.fromDate),
                 $lte: new Date(new Date(query.toDate).setHours(23, 59, 59, 999))
             };
@@ -17,13 +17,13 @@ class ThongKeService {
 
         // Lấy dữ liệu biểu đồ (Đã bao gồm ép múi giờ Việt Nam)
         const chartData = await PhieuMuon.aggregate([
-            { $match: { ...matchDate, trangThai: { $ne: 'DA_HUY' } } },
+            { $match: { ...matchDate, trangThai: { $ne: 'DA_HUY' }, ngayMuon: { $exists: true, $ne: null } } },
             {
                 $group: {
                     _id: {
                         $dateToString: {
                             format: "%Y-%m-%d",
-                            date: "$createdAt",
+                            date: "$ngayMuon",
                             timezone: "Asia/Ho_Chi_Minh" 
                         }
                     },

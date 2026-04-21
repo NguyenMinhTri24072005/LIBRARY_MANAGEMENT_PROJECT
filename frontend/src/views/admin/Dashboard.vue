@@ -170,15 +170,33 @@ const fetchStats = async () => {
       chartData: responseData?.chartData || []
     };
 
-    // Đổ dữ liệu vào biểu đồ
+    // Đổ dữ liệu vào biểu đồ với các ngày liên tục
     if (stats.value.chartData && stats.value.chartData.length > 0) {
+      const startDateStr = filter.value.fromDate || stats.value.chartData[0]._id;
+      const endDateStr = filter.value.toDate || new Date().toISOString().split('T')[0];
+      
+      const startDate = new Date(startDateStr);
+      const endDate = new Date(endDateStr);
+      
+      const allDates = [];
+      const dataMap = {};
+      
+      stats.value.chartData.forEach(item => {
+        dataMap[item._id] = item.count;
+      });
+
+      for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+        const dateStr = d.toISOString().split('T')[0];
+        allDates.push(dateStr);
+      }
+      
       chartData.value = {
-        labels: stats.value.chartData.map(item => item._id), // Các ngày
+        labels: allDates,
         datasets: [{
           label: 'Số lượt mượn',
           backgroundColor: '#764ba2',
           borderRadius: 4,
-          data: stats.value.chartData.map(item => item.count) // Số lượng
+          data: allDates.map(date => dataMap[date] || 0)
         }]
       };
     } else {
