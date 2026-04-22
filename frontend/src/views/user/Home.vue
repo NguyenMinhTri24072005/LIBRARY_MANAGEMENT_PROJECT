@@ -17,7 +17,7 @@
             </div>
           </div>
           <div class="col-lg-5 d-none d-lg-block text-center">
-            <i class="bi bi-book-half text-white opacity-50" style="font-size: 15rem; line-height: 1;"></i>
+            <i class="bi bi-book-half text-white opacity-50 floating-element" style="font-size: 15rem; line-height: 1; filter: drop-shadow(0 20px 30px rgba(0,0,0,0.3));"></i>
           </div>
         </div>
       </div>

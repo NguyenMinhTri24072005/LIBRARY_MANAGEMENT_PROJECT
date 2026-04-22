@@ -8,19 +8,21 @@
 :root {
   /* HỆ MÀU MAC OS / IPADOS LIGHT MODE */
   --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  --accent: #764ba2; /* Phục hồi biến --accent để sửa lỗi scoped style */
-  --bg-color: #f4f7f6; /* Nền sáng dịu kiểu hệ điều hành hiện đại */
-  
+  --accent: #764ba2;
+  /* Phục hồi biến --accent để sửa lỗi scoped style */
+  --bg-color: #f4f7f6;
+  /* Nền sáng dịu kiểu hệ điều hành hiện đại */
+
   /* GLASSMORPHISM */
   --glass-bg: rgba(255, 255, 255, 0.7);
   --glass-border: rgba(255, 255, 255, 0.8);
-  
+
   /* ANTIGRAVITY SHADOWS */
   --shadow-float: 0 20px 50px rgba(0, 0, 0, 0.1);
   --shadow-glow: 0 20px 45px rgba(118, 75, 162, 0.25);
-  
+
   --text-main: #2d3748;
-  
+
   /* HIỆU ỨNG NẢY ĐÀN HỒI (ELASTIC EFFECT) */
   --transition-elastic: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
@@ -34,7 +36,8 @@ body {
 }
 
 /* Vẽ nền mờ phía sau để Glassmorphism hoạt động đẹp nhất mà KHÔNG CẦN CHẠM VÀO HTML */
-body::before, body::after {
+body::before,
+body::after {
   content: '';
   position: fixed;
   border-radius: 50%;
@@ -42,47 +45,92 @@ body::before, body::after {
   z-index: -1;
   opacity: 0.6;
 }
-body::before { top: 0%; left: -10%; width: 50vw; height: 50vw; background: #c2e9fb; }
-body::after { bottom: -10%; right: -10%; width: 60vw; height: 60vw; background: #e2b0ff; }
+
+body::before {
+  top: 0%;
+  left: -10%;
+  width: 50vw;
+  height: 50vw;
+  background: #c2e9fb;
+}
+
+body::after {
+  bottom: -10%;
+  right: -10%;
+  width: 60vw;
+  height: 60vw;
+  background: #e2b0ff;
+}
 
 /* =========================================================================
    1. CARDS & BENTO GRID (Dashboard.vue)
    Hiệu ứng: Nổi mặc định, nảy đàn hồi (Bỏ hiệu ứng mờ kính để dữ liệu rõ nét)
    ========================================================================= */
 .dropdown-menu {
-  background: #ffffff !important; /* Đổi thành nền trắng đặc để không bị mờ chữ */
-  border: 1px solid var(--glass-border) !important;
-  border-radius: 16px !important; 
-  box-shadow: var(--shadow-float) !important;
-  /* Popper.js của Bootstrap quản lý transform nên ta không set translateY ở đây */
-}
-
-.card, .modal-content, .dropdown-menu {
-  border: 1px solid var(--glass-border) !important;
-  border-radius: 20px !important; /* Bo góc mượt mà */
+  background: rgba(255, 255, 255, 0.85) !important;
+  /* Kính đục hơn một chút cho menu */
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.6) !important;
+  border-radius: 16px !important;
   box-shadow: var(--shadow-float) !important;
 }
 
-.card, .modal-content {
-  background: #ffffff !important; /* Nền trắng đặc, không trong suốt */
-  
+.card,
+.modal-content {
+  background: rgba(255, 255, 255, 0.65) !important;
+  /* Độ trong suốt 65% để nhìn xuyên thấu nền */
+  backdrop-filter: blur(16px) !important;
+  /* Làm mờ cảnh vật phía sau thẻ */
+  -webkit-backdrop-filter: blur(16px) !important;
+  /* Hỗ trợ Safari */
+  border: 1px solid rgba(255, 255, 255, 0.8) !important;
+  /* Viền sáng tạo cảm giác cạnh viền của kính */
+  border-radius: 20px !important;
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07) !important;
+  /* Bóng đổ mềm và sâu hơn */
+  transform: translateY(-2px) !important;
+  /* Lơ lửng nhẹ mặc định */
+  transition: var(--transition-elastic) !important;
+  color: var(--text-main);
+  overflow: hidden;
+}
+
+.card,
+.modal-content,
+.dropdown-menu {
+  border: 1px solid var(--glass-border) !important;
+  border-radius: 20px !important;
+  /* Bo góc mượt mà */
+  box-shadow: var(--shadow-float) !important;
+}
+
+.card,
+.modal-content {
+  background: #ffffff !important;
+  /* Nền trắng đặc, không trong suốt */
+
   /* Nổi lơ lửng ngay từ trạng thái mặc định */
   transform: translateY(-5px) !important;
   transition: var(--transition-elastic) !important;
-  
+
   color: var(--text-main);
   overflow: hidden;
 }
 
 .card:hover {
-  transform: translateY(-12px) scale(1.02) !important;
-  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.15) !important;
+  transform: translateY(-8px) scale(1.01) !important;
+  /* Nảy lên khi hover (Antigravity) */
+  box-shadow: 0 15px 45px rgba(118, 75, 162, 0.15) !important;
+  background: rgba(255, 255, 255, 0.8) !important;
+  /* Sáng lên một chút khi được chú ý */
 }
 
-.card-header, .card-footer {
+.card-header,
+.card-footer {
   background: rgba(255, 255, 255, 0.4) !important;
-  border-bottom: 1px solid rgba(255,255,255,0.5) !important;
-  border-top: 1px solid rgba(255,255,255,0.5) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.5) !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.5) !important;
 }
 
 /* =========================================================================
@@ -92,18 +140,20 @@ body::after { bottom: -10%; right: -10%; width: 60vw; height: 60vw; background: 
   background: var(--glass-bg) !important;
   backdrop-filter: blur(15px) !important;
   border: 1px solid var(--glass-border) !important;
-  border-radius: 24px !important; /* Trông giống Dynamic Island / iPad Dock */
+  border-radius: 24px !important;
+  /* Trông giống Dynamic Island / iPad Dock */
   box-shadow: var(--shadow-float) !important;
   margin: 1.5rem auto 2rem auto !important;
   max-width: 96%;
-  
+
   /* Navbar không bay lên quá cao, nhưng vẫn nảy nhẹ */
-  transform: translateY(0) !important; 
+  transform: translateY(0) !important;
   transition: var(--transition-elastic) !important;
 }
+
 .navbar:hover {
   transform: translateY(-3px) !important;
-  box-shadow: 0 25px 60px rgba(0,0,0,0.12) !important;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.12) !important;
 }
 
 /* =========================================================================
@@ -118,10 +168,12 @@ body::after { bottom: -10%; right: -10%; width: 60vw; height: 60vw; background: 
   box-shadow: var(--shadow-glow) !important;
 }
 
-/* Zoom hình ảnh sách khi hover */
 .book-card img {
   transition: var(--transition-elastic) !important;
+  filter: drop-shadow(0 10px 15px rgba(0,0,0,0.15)); /* Mới: Tạo bóng đổ cho riêng cuốn sách tách rời khỏi nền */
+  border-radius: 8px; /* Mới: Sách thường bo góc nhẹ */
 }
+
 .book-card:hover img {
   transform: scale(1.08) !important;
 }
@@ -129,13 +181,25 @@ body::after { bottom: -10%; right: -10%; width: 60vw; height: 60vw; background: 
 /* =========================================================================
    4. TABLES (Hàng độc lập lơ lửng)
    ========================================================================= */
+.table tbody tr {
+  background: rgba(255, 255, 255, 0.6) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03) !important;
+  transform: translateY(-2px) !important;
+  transition: var(--transition-elastic) !important;
+}
+
 .table {
   border-collapse: separate !important;
-  border-spacing: 0 16px !important; /* Khoảng cách giữa các hàng */
+  border-spacing: 0 16px !important;
+  /* Khoảng cách giữa các hàng */
   background: transparent !important;
 }
 
-.table th, .table td {
+.table th,
+.table td {
   border: none !important;
   background: transparent !important;
   vertical-align: middle;
@@ -148,21 +212,10 @@ body::after { bottom: -10%; right: -10%; width: 60vw; height: 60vw; background: 
   letter-spacing: 1px;
 }
 
-/* Hàng bảng biến thành Card nổi */
-.table tbody tr {
-  background: rgba(255, 255, 255, 0.95) !important; /* Tăng độ sáng, bớt trong suốt để chữ nổi bật, không bị mờ */
-  border-radius: 16px !important;
-  box-shadow: var(--shadow-float) !important;
-  
-  /* Lơ lửng mặc định */
-  transform: translateY(-5px) !important;
-  transition: var(--transition-elastic) !important;
-}
-
 .table tbody tr:hover {
-  transform: translateY(-10px) scale(1.015) !important;
-  box-shadow: 0 25px 50px rgba(118, 75, 162, 0.25) !important;
-  background: #ffffff !important;
+  transform: translateY(-6px) scale(1.01) !important;
+  box-shadow: 0 15px 30px rgba(118, 75, 162, 0.15) !important;
+  background: rgba(255, 255, 255, 0.85) !important;
 }
 
 /* Bo góc cho hàng */
@@ -171,6 +224,7 @@ body::after { bottom: -10%; right: -10%; width: 60vw; height: 60vw; background: 
   border-bottom-left-radius: 16px;
   padding-left: 20px;
 }
+
 .table tbody tr td:last-child {
   border-top-right-radius: 16px;
   border-bottom-right-radius: 16px;
@@ -194,13 +248,14 @@ body::after { bottom: -10%; right: -10%; width: 60vw; height: 60vw; background: 
   box-shadow: 0 10px 25px rgba(118, 75, 162, 0.3) !important;
 }
 
-.btn-primary:hover, .btn-primary:focus {
+.btn-primary:hover,
+.btn-primary:focus {
   transform: translateY(-5px) scale(1.05) !important;
   box-shadow: 0 15px 35px rgba(118, 75, 162, 0.5) !important;
 }
 
 .btn-outline-primary {
-  background: rgba(255,255,255,0.5) !important;
+  background: rgba(255, 255, 255, 0.5) !important;
   color: #764ba2 !important;
   border: 2px solid rgba(118, 75, 162, 0.3) !important;
 }
@@ -216,14 +271,16 @@ body::after { bottom: -10%; right: -10%; width: 60vw; height: 60vw; background: 
 /* Fix nút btn-light trên banner tối màu */
 .btn-light {
   background: rgba(255, 255, 255, 0.9) !important;
-  color: #764ba2 !important; /* Đảm bảo chữ màu tím */
+  color: #764ba2 !important;
+  /* Đảm bảo chữ màu tím */
   backdrop-filter: blur(10px);
 }
+
 .btn-light:hover {
   background: #ffffff !important;
   color: #5b367d !important;
   transform: translateY(-4px) scale(1.05) !important;
-  box-shadow: 0 15px 35px rgba(0,0,0,0.15) !important;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15) !important;
 }
 
 /* Fix nút btn-outline-light (Bị mất viền do cấu hình chung) */
@@ -232,6 +289,7 @@ body::after { bottom: -10%; right: -10%; width: 60vw; height: 60vw; background: 
   color: white !important;
   border: 2px solid rgba(255, 255, 255, 0.6) !important;
 }
+
 .btn-outline-light:hover {
   background: rgba(255, 255, 255, 0.15) !important;
   border-color: white !important;
@@ -242,20 +300,25 @@ body::after { bottom: -10%; right: -10%; width: 60vw; height: 60vw; background: 
 /* =========================================================================
    6. FORM CONTROLS
    ========================================================================= */
-.form-control, .form-select {
-  background: #f8f9fa !important; /* Xám nhạt để phân tách với nền trắng của Card */
-  border: 1px solid #e2e8f0 !important; /* Viền xám dịu */
+.form-control,
+.form-select {
+  background: #f8f9fa !important;
+  /* Xám nhạt để phân tách với nền trắng của Card */
+  border: 1px solid #e2e8f0 !important;
+  /* Viền xám dịu */
   border-radius: 16px !important;
-  padding: 12px 18px; /* Bỏ !important để không làm hỏng tính năng Floating Label của Bootstrap */
+  padding: 12px 18px;
+  /* Bỏ !important để không làm hỏng tính năng Floating Label của Bootstrap */
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.02) !important;
   transition: var(--transition-elastic) !important;
   color: var(--text-main) !important;
 }
 
-.form-control:focus, .form-select:focus {
+.form-control:focus,
+.form-select:focus {
   background: rgba(255, 255, 255, 0.95) !important;
   border-color: #764ba2 !important;
-  box-shadow: 0 0 0 4px rgba(118, 75, 162, 0.15), 0 10px 20px rgba(0,0,0,0.05) !important;
+  box-shadow: 0 0 0 4px rgba(118, 75, 162, 0.15), 0 10px 20px rgba(0, 0, 0, 0.05) !important;
   transform: translateY(-2px);
 }
 
@@ -265,34 +328,42 @@ body::after { bottom: -10%; right: -10%; width: 60vw; height: 60vw; background: 
 .badge {
   border-radius: 12px !important;
   padding: 0.6em 1em !important;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
 }
 
-.shadow-sm, .shadow, .shadow-lg { 
-  box-shadow: none !important; /* Xóa bóng đổ mặc định của Bootstrap */
+.shadow-sm,
+.shadow,
+.shadow-lg {
+  box-shadow: none !important;
+  /* Xóa bóng đổ mặc định của Bootstrap */
 }
 
-.bg-light, .bg-white { 
-  background-color: transparent !important; 
+.bg-light,
+.bg-white {
+  background-color: transparent !important;
 }
 
 .list-group-item {
   background: transparent !important;
-  border-color: rgba(255,255,255,0.5) !important;
+  border-color: rgba(255, 255, 255, 0.5) !important;
   border-radius: 16px !important;
   margin-bottom: 6px;
   transition: var(--transition-elastic) !important;
 }
-.list-group-item:hover, .list-group-item.active {
-  background: rgba(255,255,255,0.9) !important;
+
+.list-group-item:hover,
+.list-group-item.active {
+  background: rgba(255, 255, 255, 0.9) !important;
   transform: translateX(8px) translateY(-2px) !important;
-  box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
   color: #764ba2 !important;
   border-color: transparent !important;
 }
 
 /* Override Text Primary */
-.text-primary, a.text-primary, i.text-primary {
+.text-primary,
+a.text-primary,
+i.text-primary {
   color: #764ba2 !important;
 }
 
@@ -301,12 +372,46 @@ body::after { bottom: -10%; right: -10%; width: 60vw; height: 60vw; background: 
   border-radius: 12px !important;
   margin: 0 4px;
   border: none !important;
-  background: rgba(255,255,255,0.5) !important;
+  background: rgba(255, 255, 255, 0.5) !important;
   transition: var(--transition-elastic) !important;
 }
-.page-item.active .page-link, .page-link:hover {
+
+.page-item.active .page-link,
+.page-link:hover {
   background: var(--primary-gradient) !important;
   color: white !important;
   transform: translateY(-4px) scale(1.1);
   box-shadow: 0 8px 20px rgba(118, 75, 162, 0.3) !important;
+}
+
+
+/* =========================================================================
+   8. CONTINUOUS ANTIGRAVITY (Hiệu ứng không trọng lực tự động)
+   ========================================================================= */
+@keyframes floatingObj {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-15px); }
+  100% { transform: translateY(0px); }
+}
+
+.floating-element {
+  animation: floatingObj 4s ease-in-out infinite;
+}
+
+/* =========================================================================
+   9. CUSTOM MAC-OS SCROLLBAR
+   ========================================================================= */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(118, 75, 162, 0.3);
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(118, 75, 162, 0.6);
 }
