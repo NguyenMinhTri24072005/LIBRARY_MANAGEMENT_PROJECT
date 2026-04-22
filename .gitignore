@@ -2,3 +2,8 @@ node_modules/
 .env
 dist/
 public/upload*
+AI_Context_Project.txt
+combine.js
+combine_for_ai.js
+project_combined_v22.txt
+TODO.md
