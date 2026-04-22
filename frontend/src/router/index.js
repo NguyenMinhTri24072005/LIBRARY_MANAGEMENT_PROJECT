@@ -26,6 +26,16 @@ const routes = [
                 component: () => import('../views/user/Home.vue'), // Landing Page mới
             },
             {
+                path: 'about',
+                name: 'About',
+                component: () => import('../views/user/About.vue'),
+            },
+            {
+                path: 'contact',
+                name: 'Contact',
+                component: () => import('../views/user/Contact.vue'),
+            },
+            {
                 path: 'books', // <--- THÊM ROUTE NÀY
                 name: 'BooksCatalog',
                 component: () => import('../views/user/BooksCatalog.vue'), // Trang danh sách sách cũ

@@ -15,6 +15,20 @@
 
                 <ul class="navbar-nav ms-auto align-items-lg-center gap-4">
                     <li class="nav-item me-lg-2" @click="isMobileMenuOpen = false">
+                        <router-link to="/about" class="nav-link fw-bold text-dark d-flex align-items-center"
+                            active-class="text-primary">
+                            <i class="bi bi-info-circle me-1"></i> Giới Thiệu
+                        </router-link>
+                    </li>
+
+                    <li class="nav-item me-lg-2" @click="isMobileMenuOpen = false">
+                        <router-link to="/contact" class="nav-link fw-bold text-dark d-flex align-items-center"
+                            active-class="text-primary">
+                            <i class="bi bi-envelope me-1"></i> Liên Hệ
+                        </router-link>
+                    </li>
+
+                    <li class="nav-item me-lg-2" @click="isMobileMenuOpen = false">
                         <router-link to="/books" class="nav-link fw-bold text-dark d-flex align-items-center"
                             active-class="text-primary">
                             <i class="bi bi-collection me-1"></i> Tủ Sách
