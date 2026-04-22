@@ -3,7 +3,8 @@ const path = require('path');
 
 const outputFile = 'project_combined.txt';
 // Các đuôi file muốn gộp
-const extensions = ['.js', '.jsx', '.ts', '.tsx', '.json', '.html', '.css', '.scss', '.md', '.env']; 
+const extensions = ['.js', '.jsx', '.ts', '.tsx', '.json', '.html', '.css', '.scss', '.md', '.env'];
+
 // Thêm 'uploads', 'assets' vào ignore nếu không muốn in cây thư mục ảnh
 const ignoreDirs = ['node_modules', '.git', 'dist', 'build', '.next', 'coverage', 'uploads', 'assets', 'public'];
 
@@ -14,7 +15,7 @@ function shouldInclude(file) {
 // 1. Hàm đệ quy để vẽ cây thư mục (bỏ qua các file/folder không cần thiết)
 function generateTree(dir, prefix = '') {
     let treeStr = '';
-    
+
     // Đọc và lọc các thư mục/file hợp lệ
     const entries = fs.readdirSync(dir, { withFileTypes: true })
         .filter(entry => {
@@ -26,15 +27,15 @@ function generateTree(dir, prefix = '') {
     entries.forEach((entry, index) => {
         const isLast = index === entries.length - 1;
         const pointer = isLast ? '└── ' : '├── ';
-        
+
         treeStr += `${prefix}${pointer}${entry.name}\n`;
-        
+
         if (entry.isDirectory()) {
             const nextPrefix = prefix + (isLast ? '    ' : '│   ');
             treeStr += generateTree(path.join(dir, entry.name), nextPrefix);
         }
     });
-    
+
     return treeStr;
 }
 
@@ -43,9 +44,9 @@ function combine(dir, outStream) {
     const entries = fs.readdirSync(dir, { withFileTypes: true });
     for (const entry of entries) {
         const fullPath = path.join(dir, entry.name);
-        
+
         if (ignoreDirs.includes(entry.name)) continue;
-        
+
         if (entry.isDirectory()) {
             combine(fullPath, outStream);
         } else if (shouldInclude(entry.name) && entry.name !== 'combine.js' && entry.name !== outputFile) {
